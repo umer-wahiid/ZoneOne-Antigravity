@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ZoneOne.Application/ZoneOne.Application.csproj" />
+  <Project Path="ZoneOne.Domain/ZoneOne.Domain.csproj" />
+  <Project Path="ZoneOne.Infrastructure/ZoneOne.Infrastructure.csproj" />
+  <Project Path="ZoneOne/ZoneOne.csproj" />
+</Solution>

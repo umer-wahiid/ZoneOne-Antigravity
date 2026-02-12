@@ -1,0 +1,6 @@
+@ZoneOne_HostAddress = http://localhost:5241
+
+GET {{ZoneOne_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
