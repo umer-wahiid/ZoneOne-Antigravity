@@ -10,6 +10,7 @@ public class GamingDbContext : DbContext, IGamingDbContext
 
     public DbSet<GameCategory> GameCategories => Set<GameCategory>();
     public DbSet<GameRoom> GameRooms => Set<GameRoom>();
+    public DbSet<Session> Sessions => Set<Session>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -44,6 +45,23 @@ public class GamingDbContext : DbContext, IGamingDbContext
             builder.Property(a => a.EntityId).HasMaxLength(100);
             builder.Property(a => a.Details).HasColumnType("nvarchar(max)");
             builder.Property(a => a.UserName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Session>(builder =>
+        {
+            builder.HasKey(s => s.Id);
+            builder.Property(s => s.HourlyRate).HasColumnType("decimal(18,2)");
+            builder.Property(s => s.TotalAmount).HasColumnType("decimal(18,2)");
+
+            builder.HasOne(s => s.GameRoom)
+                   .WithMany()
+                   .HasForeignKey(s => s.GameRoomId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.GameCategory)
+                   .WithMany()
+                   .HasForeignKey(s => s.GameCategoryId)
+                   .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

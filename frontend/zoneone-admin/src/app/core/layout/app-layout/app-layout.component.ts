@@ -19,6 +19,10 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             </button>
           </div>
           <nav class="nav-links">
+            <a routerLink="/dashboard" routerLinkActive="active" [title]="collapsed ? 'Dashboard' : ''">
+              <i class="pi pi-desktop"></i>
+              <span class="link-text">Dashboard</span>
+            </a>
             <a routerLink="/categories" routerLinkActive="active" [title]="collapsed ? 'Categories' : ''">
               <i class="pi pi-th-large"></i>
               <span class="link-text">Categories</span>

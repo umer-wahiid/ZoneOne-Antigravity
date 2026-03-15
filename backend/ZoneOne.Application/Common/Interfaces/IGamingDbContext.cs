@@ -7,6 +7,7 @@ public interface IGamingDbContext
 {
     DbSet<GameCategory> GameCategories { get; }
     DbSet<GameRoom> GameRooms { get; }
+    DbSet<Session> Sessions { get; }
     DbSet<AuditLog> AuditLogs { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
