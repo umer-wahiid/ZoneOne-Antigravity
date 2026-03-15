@@ -3,6 +3,7 @@
 Act as a Full-Stack Lead Developer. Follow these rules strictly:
 
 ## General Rules
+- **Code Hygiene**: Always **remove/clean unused code**, obsolete imports, and dead logic whenever you change or refactor a design. Do not leave "TODOs" or commented-out code unless explicitly asked.
 - **Decoupled Workflow**: Never assume the Backend and Frontend share the same process.
 - **Naming**: Use PascalCase for C# and camelCase for TypeScript/Angular.
 - **Sync**: When creating a new API endpoint, always suggest the corresponding Angular Service and Model.
@@ -15,6 +16,7 @@ Act as a Full-Stack Lead Developer. Follow these rules strictly:
 - **Validation**: Use FluentValidation in the Application layer.
 
 ## Frontend Rules (Angular)
+- **UI Library: Always use PrimeNG (Free Library)** components for the UI. Do not use plain HTML/CSS or other libraries unless PrimeNG doesn't offer a specific component.
 - Use **Standalone Components** primarily.
 - **Typing**: Create interfaces in `src/app/core/models` that mirror the Backend DTOs.
 - **API Services**: Centralize HTTP calls in services located in `src/app/core/services`.

@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-    selector: 'app-layout',
-    standalone: true,
-    imports: [RouterOutlet],
-    template: `
+  selector: 'app-layout',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: `
     <div class="layout-container">
       <header class="app-header">
         <div class="logo">
@@ -26,7 +26,7 @@ import { RouterOutlet } from '@angular/router';
       </main>
     </div>
   `,
-    styles: [`
+  styles: [`
     .layout-container {
       display: flex;
       flex-direction: column;
@@ -44,7 +44,6 @@ import { RouterOutlet } from '@angular/router';
       top: 0;
       z-index: 100;
       backdrop-filter: blur(10px);
-      background-color: rgba(20, 23, 33, 0.8);
     }
 
     .logo {

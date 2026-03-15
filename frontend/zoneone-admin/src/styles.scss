@@ -2,28 +2,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Dynamic Neumorphic Dark Theme */
-  --bg-darker: #0d0f15;
-  --bg-dark: #141721;
-  --bg-card: #1c2130;
-  --bg-card-hover: #262c3e;
-  
-  --primary: #00e5ff; /* Cyan Neon */
-  --primary-glow: rgba(0, 229, 255, 0.4);
-  
-  --secondary: #ff007f; /* Pink Neon */
-  --secondary-glow: rgba(255, 0, 127, 0.4);
-  
-  --text-primary: #ffffff;
-  --text-secondary: #94a1b2;
-  --text-muted: #6b7280;
-  
-  --accent: #b200ff; /* Purple */
-  
+  /* Premium Light Theme */
+  --bg-darker: #f3f4f6;
+  /* Main body background */
+  --bg-dark: #e5e7eb;
+  --bg-card: #ffffff;
+  /* Card/Container background */
+  --bg-card-hover: #f9fafb;
+
+  --primary: #2563eb;
+  /* Vibrant Blue */
+  --primary-glow: rgba(37, 99, 235, 0.2);
+
+  --secondary: #ec4899;
+  /* Pink */
+  --secondary-glow: rgba(236, 72, 153, 0.2);
+
+  --text-primary: #111827;
+  /* Near Black */
+  --text-secondary: #4b5563;
+  /* Medium Gray */
+  --text-muted: #9ca3af;
+  /* Light Gray */
+
+  --accent: #8b5cf6;
+  /* Purple */
+
   --border-radius-sm: 8px;
   --border-radius-md: 16px;
   --border-radius-lg: 24px;
-  
+
   --transition-fast: 0.15s ease-in-out;
   --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -36,7 +44,6 @@
 
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-darker);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -45,7 +52,12 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
 }
@@ -54,7 +66,7 @@ a {
   color: var(--primary);
   text-decoration: none;
   transition: color var(--transition-fast);
-  
+
   &:hover {
     color: var(--text-primary);
   }
