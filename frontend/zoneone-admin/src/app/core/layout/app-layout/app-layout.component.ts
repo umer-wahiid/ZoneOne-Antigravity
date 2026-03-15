@@ -1,26 +1,49 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <div class="layout-container">
-      <header class="app-header">
-        <div class="logo">
-          <span class="highlight">Zone</span>One
+    <div class="layout-container" [class.collapsed]="collapsed">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <div class="logo-row">
+            <div class="logo" *ngIf="!collapsed">
+              <span class="highlight">Zone</span>One
+            </div>
+            <button class="toggle-btn" (click)="collapsed = !collapsed">
+              <i class="pi" [class.pi-angle-left]="!collapsed" [class.pi-angle-right]="collapsed"></i>
+            </button>
+          </div>
+          <nav class="nav-links">
+            <a routerLink="/categories" routerLinkActive="active" [title]="collapsed ? 'Categories' : ''">
+              <i class="pi pi-th-large"></i>
+              <span class="link-text">Categories</span>
+            </a>
+            <a routerLink="/rooms" routerLinkActive="active" [title]="collapsed ? 'Rooms / Tables' : ''">
+              <i class="pi pi-building"></i>
+              <span class="link-text">Rooms / Tables</span>
+            </a>
+            <a href="#" [title]="collapsed ? 'Sessions' : ''">
+              <i class="pi pi-play-circle"></i>
+              <span class="link-text">Sessions</span>
+            </a>
+            <a href="#" [title]="collapsed ? 'Bookings' : ''">
+              <i class="pi pi-calendar"></i>
+              <span class="link-text">Bookings</span>
+            </a>
+          </nav>
         </div>
-        <nav class="nav-links">
-          <a routerLink="/categories" routerLinkActive="active">Categories</a>
-          <a routerLink="/rooms" routerLinkActive="active">Rooms / Tables</a>
-          <a href="#">Sessions</a>
-          <a href="#">Bookings</a>
-        </nav>
-        <div class="user-profile">
-          <div class="avatar">A</div>
+        <div class="sidebar-bottom">
+          <div class="user-info">
+            <div class="avatar">A</div>
+            <span class="user-name">Admin</span>
+          </div>
         </div>
-      </header>
+      </aside>
 
       <main class="main-content">
         <router-outlet></router-outlet>
@@ -30,90 +53,173 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   styles: [`
     .layout-container {
       display: flex;
-      flex-direction: column;
       min-height: 100vh;
     }
 
-    .app-header {
+    /* ---- Sidebar ---- */
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background-color: #1e293b;
+      color: #e2e8f0;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      background-color: var(--bg-dark);
-      border-bottom: 1px solid var(--bg-card-hover);
-      position: sticky;
-      top: 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
+
+    .collapsed .sidebar { width: 60px; }
+
+    .sidebar-top { padding: 1rem 0; }
+
+    /* Logo row */
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.25rem 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
     .logo {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 800;
       letter-spacing: 1px;
-      
-      .highlight {
-        color: var(--primary);
+      white-space: nowrap;
+      .highlight { color: #60a5fa; }
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      width: 30px; height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      font-size: 1.1rem;
+
+      &:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: #e2e8f0;
       }
     }
 
+    .collapsed .logo-row {
+      justify-content: center;
+      padding: 0.25rem 0 1rem;
+    }
+
+    /* Nav links */
     .nav-links {
       display: flex;
-      gap: 2rem;
+      flex-direction: column;
+      padding: 0.75rem 0;
 
       a {
-        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 1.25rem;
+        color: #94a3b8;
         font-weight: 500;
-        font-size: 1rem;
-        position: relative;
-        padding-bottom: 0.25rem;
+        font-size: 0.9rem;
+        transition: all 0.15s ease;
+        border-left: 3px solid transparent;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
 
-        &:hover, &.active {
-          color: var(--text-primary);
+        i {
+          font-size: 1rem;
+          min-width: 20px;
+          text-align: center;
         }
 
-        &.active::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background-color: var(--primary);
-          border-radius: 2px;
-          box-shadow: 0 0 8px var(--primary-glow);
+        &:hover {
+          color: #e2e8f0;
+          background-color: rgba(255,255,255,0.05);
+        }
+
+        &.active {
+          color: #ffffff;
+          background-color: rgba(96, 165, 250, 0.12);
+          border-left-color: #60a5fa;
+          font-weight: 600;
         }
       }
     }
 
-    .user-profile {
+    .collapsed .nav-links a {
+      justify-content: center;
+      padding: 0.65rem 0;
+      border-left: none;
+    }
+
+    .collapsed .link-text,
+    .collapsed .user-name { display: none; }
+
+    /* Bottom */
+    .sidebar-bottom {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .collapsed .sidebar-bottom {
+      padding: 1rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
       .avatar {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, #3b82f6, #ec4899);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
+        font-size: 0.8rem;
         color: white;
-        cursor: pointer;
-        transition: transform var(--transition-fast);
+        flex-shrink: 0;
+      }
 
-        &:hover {
-          transform: scale(1.05);
-          box-shadow: 0 0 12px var(--secondary-glow);
-        }
+      .user-name {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #cbd5e1;
+        white-space: nowrap;
       }
     }
 
+    /* ---- Main content ---- */
     .main-content {
       flex: 1;
+      margin-left: 240px;
       padding: 2rem;
       max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      width: calc(100% - 240px);
+      transition: margin-left 0.25s ease, width 0.25s ease;
+    }
+
+    .collapsed .main-content {
+      margin-left: 60px;
+      width: calc(100% - 60px);
     }
   `]
 })
-export class AppLayoutComponent { }
+export class AppLayoutComponent {
+  collapsed = false;
+}
