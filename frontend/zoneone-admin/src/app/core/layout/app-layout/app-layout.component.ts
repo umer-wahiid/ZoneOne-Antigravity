@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div class="layout-container">
       <header class="app-header">
@@ -12,7 +12,8 @@ import { RouterOutlet } from '@angular/router';
           <span class="highlight">Zone</span>One
         </div>
         <nav class="nav-links">
-          <a href="#" class="active">Categories</a>
+          <a routerLink="/categories" routerLinkActive="active">Categories</a>
+          <a routerLink="/rooms" routerLinkActive="active">Rooms / Tables</a>
           <a href="#">Sessions</a>
           <a href="#">Bookings</a>
         </nav>

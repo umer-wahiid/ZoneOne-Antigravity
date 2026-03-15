@@ -96,3 +96,20 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
+
+/* Global PrimeNG Table - DevExtreme compact style */
+.p-datatable .p-datatable-thead>tr>th {
+  padding: 0.35rem 0.6rem !important;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.p-datatable .p-datatable-tbody>tr>td {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.p-datatable .p-datatable-tbody>tr {
+  height: auto;
+}

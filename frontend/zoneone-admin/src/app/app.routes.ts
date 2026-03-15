@@ -17,6 +17,18 @@ export const routes: Routes = [
             {
                 path: 'categories/edit/:id',
                 loadComponent: () => import('./features/game-categories/game-category-form/game-category-form.component').then(m => m.GameCategoryFormComponent)
+            },
+            {
+                path: 'rooms',
+                loadComponent: () => import('./features/game-rooms/game-room-list/game-room-list.component').then(m => m.GameRoomListComponent)
+            },
+            {
+                path: 'rooms/new',
+                loadComponent: () => import('./features/game-rooms/game-room-form/game-room-form.component').then(m => m.GameRoomFormComponent)
+            },
+            {
+                path: 'rooms/edit/:id',
+                loadComponent: () => import('./features/game-rooms/game-room-form/game-room-form.component').then(m => m.GameRoomFormComponent)
             }
         ]
     }

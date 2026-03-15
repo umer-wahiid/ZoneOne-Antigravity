@@ -27,6 +27,10 @@ export class GameCategoryService {
         return this.categories$;
     }
 
+    getCategoriesFromApi(): Observable<GameCategory[]> {
+        return this.http.get<GameCategory[]>(this.apiUrl);
+    }
+
     getCategoryById(id: string): Observable<GameCategory> {
         return this.http.get<GameCategory>(`${this.apiUrl}/${id}`);
     }
