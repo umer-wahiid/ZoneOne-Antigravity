@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -224,6 +225,21 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
     }
   `]
 })
-export class AppLayoutComponent {
+export class AppLayoutComponent implements OnInit {
   collapsed = false;
+  private router = inject(Router);
+
+  ngOnInit() {
+    // Initial check
+    this.collapsed = this.router.url.includes('/dashboard');
+
+    // Subscribe to navigation events to auto-collapse on dashboard
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      if (event.urlAfterRedirects.includes('/dashboard')) {
+        this.collapsed = true;
+      }
+    });
+  }
 }
