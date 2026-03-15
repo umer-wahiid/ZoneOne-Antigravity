@@ -8,17 +8,13 @@ import { SessionDto } from '../models/session.model';
 })
 export class SessionService {
     private http = inject(HttpClient);
-    private apiUrl = 'https://localhost:7157/api/Sessions';
+    private apiUrl = 'https://localhost:7157/api/Bookings';
 
     calculateSession(payload: { gameRoomId: string, startTime: string, endTime: string, numberOfPersons: number }): Observable<{ amount: number }> {
         return this.http.post<{ amount: number }>(`${this.apiUrl}/calculate`, payload);
     }
 
-    startSession(payload: { gameRoomId: string, gameCategoryId: string, startTime: string, endTime: string, numberOfPersons: number }): Observable<{ id: string }> {
-        return this.http.post<{ id: string }>(`${this.apiUrl}/start`, payload);
-    }
-
-    getActiveSessions(): Observable<SessionDto[]> {
-        return this.http.get<SessionDto[]>(`${this.apiUrl}/active`);
+    checkoutBooking(payload: { customerName: string, customerPhone: string, paymentStatus: string, items: any[] }): Observable<{ id: string }> {
+        return this.http.post<{ id: string }>(`${this.apiUrl}/checkout`, payload);
     }
 }

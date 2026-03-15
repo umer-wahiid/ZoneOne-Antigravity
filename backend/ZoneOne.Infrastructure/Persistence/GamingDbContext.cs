@@ -10,7 +10,8 @@ public class GamingDbContext : DbContext, IGamingDbContext
 
     public DbSet<GameCategory> GameCategories => Set<GameCategory>();
     public DbSet<GameRoom> GameRooms => Set<GameRoom>();
-    public DbSet<Session> Sessions => Set<Session>();
+    public DbSet<BookingMaster> BookingMasters => Set<BookingMaster>();
+    public DbSet<BookingChild> BookingChildren => Set<BookingChild>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,20 +48,34 @@ public class GamingDbContext : DbContext, IGamingDbContext
             builder.Property(a => a.UserName).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Session>(builder =>
+        modelBuilder.Entity<BookingMaster>(builder =>
         {
-            builder.HasKey(s => s.Id);
-            builder.Property(s => s.HourlyRate).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.TotalAmount).HasColumnType("decimal(18,2)");
+            builder.HasKey(b => b.Id);
+            builder.Property(b => b.CustomerName).HasMaxLength(150);
+            builder.Property(b => b.CustomerPhone).HasMaxLength(50);
+            builder.Property(b => b.PaymentStatus).HasMaxLength(50);
+            builder.Property(b => b.TotalPayment).HasColumnType("decimal(18,2)");
+        });
 
-            builder.HasOne(s => s.GameRoom)
+        modelBuilder.Entity<BookingChild>(builder =>
+        {
+            builder.HasKey(c => c.Id);
+            builder.Property(c => c.TableRate).HasColumnType("decimal(18,2)");
+            builder.Property(c => c.TotalAmount).HasColumnType("decimal(18,2)");
+
+            builder.HasOne(c => c.BookingMaster)
+                   .WithMany(m => m.BookingChildren)
+                   .HasForeignKey(c => c.BookingMasterId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(c => c.GameRoom)
                    .WithMany()
-                   .HasForeignKey(s => s.GameRoomId)
+                   .HasForeignKey(c => c.GameRoomId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(s => s.GameCategory)
+            builder.HasOne(c => c.GameCategory)
                    .WithMany()
-                   .HasForeignKey(s => s.GameCategoryId)
+                   .HasForeignKey(c => c.GameCategoryId)
                    .OnDelete(DeleteBehavior.Restrict);
         });
     }

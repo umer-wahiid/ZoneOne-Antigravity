@@ -10,6 +10,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePickerModule } from 'primeng/datepicker';
+import { InputTextModule } from 'primeng/inputtext';
 
 // Services & Models
 import { GameCategoryService } from '../../core/services/game-category.service';
@@ -17,7 +18,7 @@ import { GameRoomService } from '../../core/services/game-room.service';
 import { SessionService } from '../../core/services/session.service';
 import { GameCategory } from '../../core/models/game-category.model';
 import { GameRoom } from '../../core/models/game-room.model';
-import { forkJoin, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 
 export interface CartItem {
@@ -42,7 +43,8 @@ export interface CartItem {
     DialogModule,
     ButtonModule,
     InputNumberModule,
-    DatePickerModule
+    DatePickerModule,
+    InputTextModule
   ],
   template: `
   <div class="dashboard-wrapper scalein animation-duration-300">
@@ -59,8 +61,6 @@ export interface CartItem {
       <div class="col-12 lg:col-8">
         <!-- Top Box: Categories -->
         <div class="surface-card p-4 border-round shadow-2 mb-4">
-          <div class="text-xl font-semibold mb-3">Select Gaming Category</div>
-          
           <div class="grid">
             <div class="col-12 sm:col-4 md:col-3" *ngFor="let cat of categories()">
               <div 
@@ -79,8 +79,6 @@ export interface CartItem {
 
         <!-- Bottom Box: Rooms/Tables -->
         <div class="surface-card p-4 border-round shadow-2" *ngIf="selectedCategory()">
-          <div class="text-xl font-semibold mb-3">Select a Room / Table</div>
-          
           <div class="grid">
             <div class="col-12 sm:col-4 md:col-3" *ngFor="let room of filteredRooms()">
               <div 
@@ -147,13 +145,29 @@ export interface CartItem {
             </p-table>
           </div>
 
+          <!-- Customer Profile -->
+          <div class="mt-3" *ngIf="cartItems().length > 0">
+              <div class="flex flex-column gap-2 mb-2">
+                  <span class="p-input-icon-left w-full">
+                      <i class="pi pi-user"></i>
+                      <input type="text" pInputText placeholder="Customer Name" class="w-full" [(ngModel)]="customerName">
+                  </span>
+              </div>
+              <div class="flex flex-column gap-2">
+                  <span class="p-input-icon-left w-full">
+                      <i class="pi pi-phone"></i>
+                      <input type="text" pInputText placeholder="Contact Phone" class="w-full" [(ngModel)]="customerPhone">
+                  </span>
+              </div>
+          </div>
+
           <!-- Checkout Footer -->
-          <div class="mt-4 pt-3 border-top-1 border-300">
+          <div class="mt-3 pt-3 border-top-1 border-300">
             <div class="flex justify-content-between align-items-center mb-3">
               <span class="text-xl font-semibold text-700">Grand Total</span>
               <span class="text-2xl font-bold text-green-600">{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</span>
             </div>
-            <p-button label="Checkout Booking" icon="pi pi-check" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0"></p-button>
+            <p-button label="Checkout Booking" icon="pi pi-check" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0 || !customerName.trim()"></p-button>
           </div>
 
         </div>
@@ -211,10 +225,14 @@ export class DashboardComponent implements OnInit {
   // State via Signals
   categories = signal<GameCategory[]>([]);
   rooms = signal<GameRoom[]>([]);
-  
+
   // Cart state
   cartItems = signal<CartItem[]>([]);
   editingCartItemId = signal<string | null>(null);
+
+  // Customer Profile
+  customerName = '';
+  customerPhone = '';
 
   selectedCategory = signal<GameCategory | null>(null);
   selectedRoom = signal<GameRoom | null>(null);
@@ -250,7 +268,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.catSvc.categories$.pipe(takeUntil(this.destroy$)).subscribe((c: GameCategory[]) => this.categories.set(c));
     this.roomSvc.rooms$.pipe(takeUntil(this.destroy$)).subscribe((r: GameRoom[]) => this.rooms.set(r));
-    
+
     // Explicitly refetch on dashboard mount so the cache gets updated if they changed screens
     this.catSvc.getCategoriesFromApi().subscribe(c => (this.catSvc as any)['categoriesSubject'].next(c));
     (this.roomSvc as any)['refreshRooms']();
@@ -280,7 +298,7 @@ export class DashboardComponent implements OnInit {
   onCategorySelect(category: GameCategory) {
     this.selectedCategory.set(category);
     this.selectedRoom.set(null); // Reset room when category shifts
-    this.editingCartItemId.set(null); 
+    this.editingCartItemId.set(null);
   }
 
   onRoomSelect(room: GameRoom) {
@@ -295,7 +313,7 @@ export class DashboardComponent implements OnInit {
       startTime: new Date(),
       endTime: new Date(new Date().getTime() + 60 * 60 * 1000)
     });
-    
+
     // Trigger initial calculation
     this.calculatePrice();
 
@@ -307,7 +325,7 @@ export class DashboardComponent implements OnInit {
     this.selectedCategory.set(item.category);
     this.selectedRoom.set(item.room);
     this.calculatedPrice.set(item.calculatedPrice);
-    
+
     this.sessionForm.patchValue({
       numberOfPersons: item.numberOfPersons,
       startTime: item.startTime,
@@ -323,6 +341,8 @@ export class DashboardComponent implements OnInit {
 
   clearCart() {
     this.cartItems.set([]);
+    this.customerName = '';
+    this.customerPhone = '';
   }
 
   cancelSelection() {
@@ -360,7 +380,7 @@ export class DashboardComponent implements OnInit {
     const room = this.selectedRoom();
     const cat = this.selectedCategory();
     const price = this.calculatedPrice();
-    
+
     if (this.sessionForm.invalid || !room || !cat || price === null) return;
 
     const val = this.sessionForm.value;
@@ -388,25 +408,31 @@ export class DashboardComponent implements OnInit {
   }
 
   checkoutCart() {
-    if (this.cartItems().length === 0) return;
+    if (this.cartItems().length === 0 || !this.customerName.trim()) {
+       this.messageSvc.add({ severity: 'warn', summary: 'Missing Info', detail: 'Please provide Customer Name and add slots to cart.' });
+       return;
+    }
 
-    const requests = this.cartItems().map(item => {
-      return this.sessionSvc.startSession({
-        gameRoomId: item.room.id,
-        gameCategoryId: item.category.id,
-        startTime: item.startTime.toISOString(),
-        endTime: item.endTime.toISOString(),
-        numberOfPersons: item.numberOfPersons
-      });
-    });
+    const payload = {
+       customerName: this.customerName,
+       customerPhone: this.customerPhone,
+       paymentStatus: 'Paid', // Assuming POS cash register checkout is immediate Paid
+       items: this.cartItems().map(item => ({
+          gameRoomId: item.room.id,
+          gameCategoryId: item.category.id,
+          startTime: item.startTime.toISOString(),
+          endTime: item.endTime.toISOString(),
+          numberOfPersons: item.numberOfPersons
+       }))
+    };
 
-    forkJoin(requests).subscribe({
+    this.sessionSvc.checkoutBooking(payload).subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'All slots successfully booked!' });
+        this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
         this.clearCart();
       },
       error: (err) => {
-        this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'One or more slots failed to book.' });
+        this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
       }
     });
   }
