@@ -73,7 +73,6 @@ export interface CartItem {
               <div 
                 class="surface-100 p-3 border-round shadow-1 cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-3 flex flex-column align-items-center justify-content-center text-center h-7rem border-2 border-transparent"
                 [class.border-primary]="selectedCategory()?.id === cat.id"
-                [class.surface-hover]="selectedCategory()?.id === cat.id"
                 [class.bg-blue-50]="selectedCategory()?.id === cat.id"
                 (click)="onCategorySelect(cat)">
                 <i class="pi pi-tags text-2xl text-primary mb-2"></i>
@@ -174,7 +173,7 @@ export interface CartItem {
               <span class="text-xl font-semibold text-700">Grand Total</span>
               <span class="text-2xl font-bold text-green-600">{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</span>
             </div>
-            <p-button label="Checkout Booking" icon="pi pi-check" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0 || !customerName.trim()"></p-button>
+            <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0 || !customerName.trim()"></p-button>
           </div>
 
         </div>
@@ -282,6 +281,7 @@ export class DashboardComponent implements OnInit {
   // Customer Profile
   customerName = '';
   customerPhone = '';
+  editingBookingId = signal<string | null>(null);
 
   // Bookings History
   showBookingsDialog = false;
@@ -397,6 +397,7 @@ export class DashboardComponent implements OnInit {
     this.cartItems.set([]);
     this.customerName = '';
     this.customerPhone = '';
+    this.editingBookingId.set(null);
   }
 
   cancelSelection() {
@@ -467,7 +468,10 @@ export class DashboardComponent implements OnInit {
        return;
     }
 
+    const bookingId = this.editingBookingId();
+
     const payload = {
+       id: bookingId || '',
        customerName: this.customerName,
        customerPhone: this.customerPhone,
        paymentStatus: 'Paid', // Assuming POS cash register checkout is immediate Paid
@@ -480,15 +484,27 @@ export class DashboardComponent implements OnInit {
        }))
     };
 
-    this.sessionSvc.checkoutBooking(payload).subscribe({
-      next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
-        this.clearCart();
-      },
-      error: (err) => {
-        this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
-      }
-    });
+    if (bookingId) {
+       this.sessionSvc.updateBooking(bookingId, payload).subscribe({
+         next: () => {
+           this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Ticket completely updated!' });
+           this.clearCart();
+         },
+         error: (err) => {
+           this.messageSvc.add({ severity: 'error', summary: 'Update Failed', detail: err.error?.message || 'Failed to update ticket.' });
+         }
+       });
+    } else {
+       this.sessionSvc.checkoutBooking(payload).subscribe({
+         next: () => {
+           this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
+           this.clearCart();
+         },
+         error: (err) => {
+           this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
+         }
+       });
+    }
   }
 
   openBookingsDialog() {
@@ -521,6 +537,24 @@ export class DashboardComponent implements OnInit {
   }
 
   editBooking(booking: any) {
-    this.messageSvc.add({ severity: 'info', summary: 'Edit Mode', detail: 'Editing existing bookings is not fully implemented yet.' });
+    this.clearCart();
+    
+    this.editingBookingId.set(booking.id);
+    this.customerName = booking.customerName;
+    this.customerPhone = booking.customerPhone;
+
+    const mappedCartItems: CartItem[] = (booking.items || []).map((item: any) => ({
+      id: Math.random().toString(36).substring(2, 9),
+      category: { id: item.gameCategoryId, name: item.gameCategoryName } as GameCategory,
+      room: { id: item.gameRoomId, roomNo: item.gameRoomName, maxPlayers: item.totalPersons, ratePerHour: item.tableRate } as unknown as GameRoom,
+      startTime: new Date(item.startTime),
+      endTime: new Date(item.endTime),
+      numberOfPersons: item.totalPersons,
+      calculatedPrice: item.totalAmount
+    }));
+
+    this.cartItems.set(mappedCartItems);
+    this.showBookingsDialog = false;
+    this.messageSvc.add({ severity: 'info', summary: 'Edit Mode Enabled', detail: `Editing ticket for ${booking.customerName}` });
   }
 }

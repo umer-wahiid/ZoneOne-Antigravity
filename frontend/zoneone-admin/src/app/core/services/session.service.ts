@@ -18,6 +18,10 @@ export class SessionService {
         return this.http.post<{ id: string }>(`${this.apiUrl}/checkout`, payload);
     }
 
+    updateBooking(id: string, payload: { id: string, customerName: string, customerPhone: string, paymentStatus: string, items: any[] }): Observable<void> {
+        return this.http.put<void>(`${this.apiUrl}/${id}`, payload);
+    }
+
     getBookings(): Observable<any[]> {
         return this.http.get<any[]>(this.apiUrl);
     }

@@ -30,6 +30,19 @@ public class BookingsController(IMediator mediator) : ControllerBase
         return Ok(new { id = result.Value });
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateBooking(Guid id, [FromBody] UpdateBookingCommand command)
+    {
+        if (id != command.Id)
+            return BadRequest(new { message = "Mismatched Booking ID" });
+
+        var result = await mediator.Send(command);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return NoContent();
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingMasterDto>>> GetBookings()
     {
