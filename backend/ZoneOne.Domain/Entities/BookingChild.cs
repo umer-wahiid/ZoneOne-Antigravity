@@ -18,4 +18,5 @@ public class BookingChild
     public int TotalPersons { get; set; }
     public decimal TableRate { get; set; }
     public decimal TotalAmount { get; set; }
+    public bool IsDeleted { get; set; }
 }

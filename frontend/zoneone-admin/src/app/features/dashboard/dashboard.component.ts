@@ -1,7 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 // PrimeNG
 import { ListboxModule } from 'primeng/listbox';
@@ -44,14 +45,20 @@ export interface CartItem {
     ButtonModule,
     InputNumberModule,
     DatePickerModule,
-    InputTextModule
+    InputTextModule,
+    ConfirmDialogModule
   ],
+  providers: [ConfirmationService],
   template: `
   <div class="dashboard-wrapper scalein animation-duration-300">
-    <div class="flex justify-content-between align-items-center mb-4">
+    <!-- Top Bar -->
+    <div class="surface-card p-3 border-round shadow-2 flex justify-content-between align-items-center mb-4">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-desktop text-2xl text-primary"></i>
+        <span class="text-xl font-bold text-900">POS Terminal</span>
+      </div>
       <div>
-        <h1 class="text-3xl font-bold m-0 p-0 text-900">Dashboard POS</h1>
-        <p class="text-500 mt-1">Book multiple tables, rooms, or slots into a single cart checkout.</p>
+        <p-button label="All Bookings" icon="pi pi-list" severity="secondary" (onClick)="openBookingsDialog()"></p-button>
       </div>
     </div>
 
@@ -215,6 +222,48 @@ export interface CartItem {
       </div>
     </ng-template>
   </p-dialog>
+
+  <!-- All Bookings Dialog -->
+  <p-dialog header="Booking History" [modal]="true" [(visible)]="showBookingsDialog" [style]="{ width: '80vw' }" [maximizable]="true">
+    <p-table [value]="bookingsList()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="10">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Total Payment</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th class="w-8rem text-center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-booking>
+        <tr>
+          <td class="font-mono text-xs">{{ booking.id.substring(0, 8) }}...</td>
+          <td class="font-bold">{{ booking.customerName }}</td>
+          <td>{{ booking.customerPhone }}</td>
+          <td class="text-green-600 font-bold">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
+          <td>
+            <span class="p-badge p-badge-success">{{ booking.paymentStatus }}</span>
+          </td>
+          <td>{{ booking.createdAt | date:'short' }}</td>
+          <td class="text-center p-0">
+            <div class="flex justify-content-center gap-2">
+              <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" size="small" (onClick)="editBooking(booking)" pTooltip="Edit Booking"></p-button>
+              <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small" (onClick)="deleteBooking(booking.id)" pTooltip="Delete Booking"></p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center text-500 p-4">No bookings found.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-dialog>
+
+  <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
   `,
   styles: [`
     .dashboard-wrapper { padding: 1rem; }
@@ -233,6 +282,10 @@ export class DashboardComponent implements OnInit {
   // Customer Profile
   customerName = '';
   customerPhone = '';
+
+  // Bookings History
+  showBookingsDialog = false;
+  bookingsList = signal<any[]>([]);
 
   selectedCategory = signal<GameCategory | null>(null);
   selectedRoom = signal<GameRoom | null>(null);
@@ -258,6 +311,7 @@ export class DashboardComponent implements OnInit {
   private roomSvc = inject(GameRoomService);
   private sessionSvc = inject(SessionService);
   private messageSvc = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
 
   constructor() {
     this.initForm();
@@ -435,5 +489,38 @@ export class DashboardComponent implements OnInit {
         this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
       }
     });
+  }
+
+  openBookingsDialog() {
+    this.sessionSvc.getBookings().subscribe({
+      next: (data) => {
+        this.bookingsList.set(data);
+        this.showBookingsDialog = true;
+      },
+      error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Failed to load bookings.' })
+    });
+  }
+
+  deleteBooking(id: string) {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to delete this booking?',
+      header: 'Confirm Deletion',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary p-button-text',
+      accept: () => {
+        this.sessionSvc.deleteBooking(id).subscribe({
+          next: () => {
+            this.messageSvc.add({ severity: 'success', summary: 'Deleted', detail: 'Booking has been deleted successfully.' });
+            this.bookingsList.update(list => list.filter(b => b.id !== id));
+          },
+          error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete booking.' })
+        });
+      }
+    });
+  }
+
+  editBooking(booking: any) {
+    this.messageSvc.add({ severity: 'info', summary: 'Edit Mode', detail: 'Editing existing bookings is not fully implemented yet.' });
   }
 }

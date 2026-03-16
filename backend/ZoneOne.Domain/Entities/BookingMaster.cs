@@ -8,6 +8,7 @@ public class BookingMaster
     public decimal TotalPayment { get; set; }
     public string PaymentStatus { get; set; } = string.Empty;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; }
 
     public ICollection<BookingChild> BookingChildren { get; set; } = new List<BookingChild>();
 }

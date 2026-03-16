@@ -17,4 +17,12 @@ export class SessionService {
     checkoutBooking(payload: { customerName: string, customerPhone: string, paymentStatus: string, items: any[] }): Observable<{ id: string }> {
         return this.http.post<{ id: string }>(`${this.apiUrl}/checkout`, payload);
     }
+
+    getBookings(): Observable<any[]> {
+        return this.http.get<any[]>(this.apiUrl);
+    }
+
+    deleteBooking(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
 }

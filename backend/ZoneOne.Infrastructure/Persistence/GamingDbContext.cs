@@ -55,6 +55,7 @@ public class GamingDbContext : DbContext, IGamingDbContext
             builder.Property(b => b.CustomerPhone).HasMaxLength(50);
             builder.Property(b => b.PaymentStatus).HasMaxLength(50);
             builder.Property(b => b.TotalPayment).HasColumnType("decimal(18,2)");
+            builder.HasQueryFilter(b => !b.IsDeleted);
         });
 
         modelBuilder.Entity<BookingChild>(builder =>
@@ -77,6 +78,8 @@ public class GamingDbContext : DbContext, IGamingDbContext
                    .WithMany()
                    .HasForeignKey(c => c.GameCategoryId)
                    .OnDelete(DeleteBehavior.Restrict);
+                   
+            builder.HasQueryFilter(c => !c.IsDeleted);
         });
     }
 }
