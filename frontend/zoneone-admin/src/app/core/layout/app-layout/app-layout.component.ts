@@ -213,8 +213,6 @@ import { filter } from 'rxjs';
     .main-content {
       flex: 1;
       margin-left: 240px;
-      padding: 2rem;
-      max-width: 1400px;
       width: calc(100% - 240px);
       transition: margin-left 0.25s ease, width 0.25s ease;
     }

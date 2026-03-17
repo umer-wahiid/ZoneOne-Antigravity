@@ -50,14 +50,16 @@ export interface CartItem {
   ],
   providers: [ConfirmationService],
   template: `
-  <div class="dashboard-wrapper scalein animation-duration-300">
+  <div class="dashboard-wrapper scalein animation-duration-300 w-full">
     <!-- Top Bar -->
-    <div class="surface-card p-3 border-round shadow-2 flex justify-content-between align-items-center mb-4">
+    <div class="surface-card p-3 border-round shadow-2 w-full flex flex-column md:flex-row justify-content-between align-items-center mb-4 gap-3">
       <div class="flex align-items-center gap-2">
         <i class="pi pi-desktop text-2xl text-primary"></i>
         <span class="text-xl font-bold text-900">POS Terminal</span>
       </div>
-      <div>
+      <div class="flex flex-wrap align-items-center gap-2">
+        <input pInputText type="text" placeholder="Customer Name" [(ngModel)]="customerName" style="width: 220px;" />
+        <input pInputText type="text" placeholder="Customer Phone" [(ngModel)]="customerPhone" style="width: 160px;" />
         <p-button label="All Bookings" icon="pi pi-list" severity="secondary" (onClick)="openBookingsDialog()"></p-button>
       </div>
     </div>
@@ -149,22 +151,6 @@ export interface CartItem {
                 </tr>
               </ng-template>
             </p-table>
-          </div>
-
-          <!-- Customer Profile -->
-          <div class="mt-3" *ngIf="cartItems().length > 0">
-              <div class="flex flex-column gap-2 mb-2">
-                  <span class="p-input-icon-left w-full">
-                      <i class="pi pi-user"></i>
-                      <input type="text" pInputText placeholder="Customer Name" class="w-full" [(ngModel)]="customerName">
-                  </span>
-              </div>
-              <div class="flex flex-column gap-2">
-                  <span class="p-input-icon-left w-full">
-                      <i class="pi pi-phone"></i>
-                      <input type="text" pInputText placeholder="Contact Phone" class="w-full" [(ngModel)]="customerPhone">
-                  </span>
-              </div>
           </div>
 
           <!-- Checkout Footer -->
