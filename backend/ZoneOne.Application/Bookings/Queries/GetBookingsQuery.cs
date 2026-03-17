@@ -10,6 +10,7 @@ public record BookingMasterDto(
     string CustomerPhone,
     string PaymentStatus,
     decimal TotalPayment,
+    decimal PaidAmount,
     DateTime CreatedAt,
     List<BookingChildDto> Items);
 
@@ -45,6 +46,7 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
             b.CustomerPhone,
             b.PaymentStatus,
             b.TotalPayment,
+            b.PaidAmount,
             b.CreatedAt,
             b.BookingChildren.Select(c => new BookingChildDto(
                 c.Id,

@@ -18,6 +18,7 @@ public record CreateBookingCommand(
     string CustomerName,
     string CustomerPhone,
     string PaymentStatus,
+    decimal PaidAmount,
     List<BookingItemCommand> Items) : IRequest<Result<Guid>>;
 
 public class CreateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
@@ -33,6 +34,7 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
             CustomerName = request.CustomerName,
             CustomerPhone = request.CustomerPhone,
             PaymentStatus = string.IsNullOrWhiteSpace(request.PaymentStatus) ? "Pending" : request.PaymentStatus,
+            PaidAmount = request.PaidAmount,
             TotalPayment = 0 // Calculated below
         };
 

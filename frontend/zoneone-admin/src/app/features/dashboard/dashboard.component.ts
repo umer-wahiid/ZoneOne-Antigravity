@@ -155,10 +155,26 @@ export interface CartItem {
 
           <!-- Checkout Footer -->
           <div class="mt-3 pt-3 border-top-1 border-300">
-            <div class="flex justify-content-between align-items-center mb-3">
+            <div class="flex justify-content-between align-items-center mb-2">
               <span class="text-xl font-semibold text-700">Grand Total</span>
               <span class="text-2xl font-bold text-green-600">{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</span>
             </div>
+
+            <!-- Payment Fields -->
+            <div class="flex flex-column gap-2 mb-3" *ngIf="cartItems().length > 0">
+              <div class="flex align-items-center justify-content-between gap-2">
+                <label class="text-600 font-medium white-space-nowrap">Cash Received</label>
+                <p-inputNumber [ngModel]="cashReceived()" (ngModelChange)="cashReceived.set($event)" [min]="0" mode="currency" currency="PKR" locale="en-PK"
+                  styleClass="w-full" inputStyleClass="text-right font-bold"></p-inputNumber>
+              </div>
+              <div class="flex align-items-center justify-content-between surface-100 border-round p-2">
+                <span class="text-600 font-medium">Remaining</span>
+                <span class="font-bold text-lg" [class.text-red-500]="cashRemaining() > 0" [class.text-green-600]="cashRemaining() <= 0">
+                  {{ cashRemaining() | currency:'PKR ':'symbol':'1.0-0' }}
+                </span>
+              </div>
+            </div>
+
             <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0 || !customerName.trim()"></p-button>
           </div>
 
@@ -267,7 +283,14 @@ export class DashboardComponent implements OnInit {
   // Customer Profile
   customerName = '';
   customerPhone = '';
+  cashReceived = signal(0);
   editingBookingId = signal<string | null>(null);
+
+  cashRemaining = computed(() => Math.max(0, this.grandTotal() - this.cashReceived()));
+
+  onCashReceivedChange() {
+    // no-op: signal binding handles reactivity
+  }
 
   // Bookings History
   showBookingsDialog = false;
@@ -383,6 +406,7 @@ export class DashboardComponent implements OnInit {
     this.cartItems.set([]);
     this.customerName = '';
     this.customerPhone = '';
+    this.cashReceived.set(0);
     this.editingBookingId.set(null);
   }
 
@@ -455,12 +479,14 @@ export class DashboardComponent implements OnInit {
     }
 
     const bookingId = this.editingBookingId();
+    const paymentStatus = this.cashRemaining() <= 0 ? 'Done' : 'Pending';
 
     const payload = {
        id: bookingId || '',
        customerName: this.customerName,
        customerPhone: this.customerPhone,
-       paymentStatus: 'Paid', // Assuming POS cash register checkout is immediate Paid
+       paymentStatus,
+       paidAmount: this.cashReceived(),
        items: this.cartItems().map(item => ({
           gameRoomId: item.room.id,
           gameCategoryId: item.category.id,
@@ -528,6 +554,7 @@ export class DashboardComponent implements OnInit {
     this.editingBookingId.set(booking.id);
     this.customerName = booking.customerName;
     this.customerPhone = booking.customerPhone;
+    this.cashReceived.set(booking.paidAmount ?? 0);
 
     const mappedCartItems: CartItem[] = (booking.items || []).map((item: any) => ({
       id: Math.random().toString(36).substring(2, 9),

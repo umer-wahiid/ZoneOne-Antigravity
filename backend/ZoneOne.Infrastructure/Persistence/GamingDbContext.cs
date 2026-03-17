@@ -55,6 +55,7 @@ public class GamingDbContext : DbContext, IGamingDbContext
             builder.Property(b => b.CustomerPhone).HasMaxLength(50);
             builder.Property(b => b.PaymentStatus).HasMaxLength(50);
             builder.Property(b => b.TotalPayment).HasColumnType("decimal(18,2)");
+            builder.Property(b => b.PaidAmount).HasColumnType("decimal(18,2)");
             builder.HasQueryFilter(b => !b.IsDeleted);
         });
 

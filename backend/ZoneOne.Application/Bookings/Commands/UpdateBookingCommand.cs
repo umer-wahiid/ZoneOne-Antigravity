@@ -12,6 +12,7 @@ public record UpdateBookingCommand(
     string CustomerName,
     string CustomerPhone,
     string PaymentStatus,
+    decimal PaidAmount,
     List<BookingItemCommand> Items) : IRequest<Result<bool>>;
 
 public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
@@ -32,6 +33,7 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
         bookingMaster.CustomerName = request.CustomerName;
         bookingMaster.CustomerPhone = request.CustomerPhone;
         bookingMaster.PaymentStatus = string.IsNullOrWhiteSpace(request.PaymentStatus) ? "Pending" : request.PaymentStatus;
+        bookingMaster.PaidAmount = request.PaidAmount;
 
         // Mark existing items as soft-deleted to keep history cleanly
         foreach (var child in bookingMaster.BookingChildren)
