@@ -33,6 +33,18 @@ export const routes: Routes = [
             {
                 path: 'rooms/edit/:id',
                 loadComponent: () => import('./features/game-rooms/game-room-form/game-room-form.component').then(m => m.GameRoomFormComponent)
+            },
+            {
+                path: 'extras',
+                loadComponent: () => import('./features/extras/extra-list/extra-list.component').then(m => m.ExtraListComponent)
+            },
+            {
+                path: 'extras/new',
+                loadComponent: () => import('./features/extras/extra-form/extra-form.component').then(m => m.ExtraFormComponent)
+            },
+            {
+                path: 'extras/edit/:id',
+                loadComponent: () => import('./features/extras/extra-form/extra-form.component').then(m => m.ExtraFormComponent)
             }
         ]
     }

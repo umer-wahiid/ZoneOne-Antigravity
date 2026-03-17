@@ -32,13 +32,9 @@ import { filter } from 'rxjs';
               <i class="pi pi-building"></i>
               <span class="link-text">Rooms / Tables</span>
             </a>
-            <a href="#" [title]="collapsed ? 'Sessions' : ''">
-              <i class="pi pi-play-circle"></i>
-              <span class="link-text">Sessions</span>
-            </a>
-            <a href="#" [title]="collapsed ? 'Bookings' : ''">
-              <i class="pi pi-calendar"></i>
-              <span class="link-text">Bookings</span>
+            <a routerLink="/extras" routerLinkActive="active" [title]="collapsed ? 'Extras / Beverages' : ''">
+              <i class="pi pi-box"></i>
+              <span class="link-text">Extras / Beverages</span>
             </a>
           </nav>
         </div>

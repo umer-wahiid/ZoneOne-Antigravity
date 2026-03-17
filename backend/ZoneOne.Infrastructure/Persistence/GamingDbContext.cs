@@ -12,6 +12,7 @@ public class GamingDbContext : DbContext, IGamingDbContext
     public DbSet<GameRoom> GameRooms => Set<GameRoom>();
     public DbSet<BookingMaster> BookingMasters => Set<BookingMaster>();
     public DbSet<BookingChild> BookingChildren => Set<BookingChild>();
+    public DbSet<Extra> Extras => Set<Extra>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -81,6 +82,14 @@ public class GamingDbContext : DbContext, IGamingDbContext
                    .OnDelete(DeleteBehavior.Restrict);
                    
             builder.HasQueryFilter(c => !c.IsDeleted);
+        });
+
+        modelBuilder.Entity<Extra>(builder =>
+        {
+            builder.HasKey(e => e.Id);
+            builder.Property(e => e.Name).IsRequired().HasMaxLength(150);
+            builder.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            builder.HasQueryFilter(e => !e.IsDeleted);
         });
     }
 }

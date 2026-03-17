@@ -9,6 +9,7 @@ public interface IGamingDbContext
     DbSet<GameRoom> GameRooms { get; }
     DbSet<BookingMaster> BookingMasters { get; }
     DbSet<BookingChild> BookingChildren { get; }
+    DbSet<Extra> Extras { get; }
     DbSet<AuditLog> AuditLogs { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
