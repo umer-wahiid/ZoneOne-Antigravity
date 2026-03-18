@@ -274,8 +274,8 @@ export interface ExtraCartItem {
           <td class="font-bold">{{ booking.customerName }}</td>
           <td>{{ booking.customerPhone }}</td>
           <td class="font-bold text-primary">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
-          <td>
-            <span class="p-badge" [style.background-color]="booking.paymentStatus === 'Done' ? '#055a87' : '#f97316'">{{ booking.paymentStatus }}</span>
+          <td class="font-bold">
+            <span [style.color]="booking.paymentStatus === 'Done' ? '#055a87' : '#ef4444'">{{ booking.paymentStatus }}</span>
           </td>
           <td>{{ booking.createdAt | date:'short' }}</td>
           <td class="text-center p-0">

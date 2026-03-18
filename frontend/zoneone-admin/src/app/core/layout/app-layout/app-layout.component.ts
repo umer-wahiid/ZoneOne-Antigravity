@@ -61,8 +61,8 @@ import { filter } from 'rxjs';
     .sidebar {
       width: 240px;
       min-height: 100vh;
-      background-color: #1e293b;
-      color: #e2e8f0;
+      background-color: #055a87;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -92,13 +92,14 @@ import { filter } from 'rxjs';
       font-weight: 800;
       letter-spacing: 1px;
       white-space: nowrap;
-      .highlight { color: #055a87; }
+      color: #ffffff;
+      .highlight { color: #8ecae6; }
     }
 
     .toggle-btn {
       background: none;
       border: none;
-      color: #94a3b8;
+      color: rgba(255, 255, 255, 0.7);
       cursor: pointer;
       width: 30px; height: 30px;
       display: flex;
@@ -130,7 +131,7 @@ import { filter } from 'rxjs';
         align-items: center;
         gap: 0.75rem;
         padding: 0.65rem 1.25rem;
-        color: #94a3b8;
+        color: rgba(255, 255, 255, 0.75);
         font-weight: 500;
         font-size: 0.9rem;
         transition: all 0.15s ease;
@@ -146,14 +147,14 @@ import { filter } from 'rxjs';
         }
 
         &:hover {
-          color: #e2e8f0;
-          background-color: rgba(255,255,255,0.05);
+          color: #ffffff;
+          background-color: rgba(255, 255, 255, 0.1);
         }
 
         &.active {
           color: #ffffff;
-          background-color: rgba(5, 90, 135, 0.15);
-          border-left-color: #055a87;
+          background-color: rgba(255, 255, 255, 0.2);
+          border-left-color: #ffffff;
           font-weight: 600;
         }
       }
