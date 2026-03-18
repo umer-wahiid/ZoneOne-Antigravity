@@ -11,9 +11,9 @@
   /* Card/Container background */
   --bg-card-hover: #f9fafb;
 
-  --primary: #2563eb;
-  /* Vibrant Blue */
-  --primary-glow: rgba(37, 99, 235, 0.2);
+  --primary: #055a87;
+  /* Radiant Deep Blue */
+  --primary-glow: rgba(5, 90, 135, 0.2);
 
   --secondary: #ec4899;
   /* Pink */
@@ -29,12 +29,179 @@
   --accent: #8b5cf6;
   /* Purple */
 
+  /* PrimeNG Aura Overrides to unify branding */
+  --p-primary-500: #055a87;
+  --p-primary-600: #044a6b;
+  --p-success-500: #055a87;
+  --p-success-600: #044a6b;
+  --p-info-500: #055a87;
+  --p-info-600: #044a6b;
+
+  /* Utilities for the dashboard */
+  --text-custom-brand: #055a87;
+  --bg-custom-brand-light: rgba(5, 90, 135, 0.1);
+
   --border-radius-sm: 8px;
   --border-radius-md: 16px;
   --border-radius-lg: 24px;
 
   --transition-fast: 0.15s ease-in-out;
   --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Force Rebranding for Utility Classes */
+.text-green-500,
+.text-green-600,
+.text-blue-500,
+.text-blue-600,
+.text-primary {
+  color: #055a87 !important;
+}
+
+.bg-blue-50,
+.bg-green-50,
+.bg-blue-100,
+.bg-green-100 {
+  background-color: rgba(5, 90, 135, 0.1) !important;
+}
+
+.border-primary,
+.border-green-500,
+.border-blue-500 {
+  border-color: #055a87 !important;
+}
+
+/* Hard Overrides for PrimeNG Buttons to Brand Color */
+.p-button.p-p-button,
+.p-button.p-button-primary,
+.p-button.p-button-success,
+.p-button.p-button-info,
+.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text) {
+  background: #055a87 !important;
+  border-color: #055a87 !important;
+  color: #ffffff !important;
+}
+
+.p-button.p-button-primary:hover,
+.p-button.p-button-success:hover,
+.p-button.p-button-info:hover,
+.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text):hover {
+  background: #044a6b !important;
+  border-color: #044a6b !important;
+}
+
+/* Global Rebranding Overrides */
+.sidebar, .cart-sidebar {
+  background-color: #055a87 !important;
+  color: #ffffff !important;
+}
+
+/* Universal Cart Panel Styles (for right side) */
+.cart-sidebar {
+  h1, h2, h3, div, span, label, i {
+    color: white !important;
+  }
+  
+  .text-500, .text-600, .text-700, .text-800, .text-900 {
+    color: rgba(255,255,255,0.8) !important;
+  }
+
+  .surface-100 {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .surface-card {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+  
+  .border-300 {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* Tables in dark panels */
+  .p-datatable {
+    .p-datatable-thead > tr > th {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: rgba(255, 255, 255, 0.9) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    .p-datatable-tbody > tr {
+      background: transparent !important;
+      color: white !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+      }
+    }
+    &.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+  }
+
+  /* Inputs in dark panels */
+  .p-inputtext, .p-inputnumber-input, .p-inputnumber {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+  }
+  
+  .p-inputnumber-input {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* Special buttons in dark panels */
+  .p-button.p-button-success {
+    background: white !important;
+    color: #055a87 !important;
+    border-color: white !important;
+    font-weight: 700 !important;
+    &:hover {
+      background: rgba(255, 255, 255, 0.9) !important;
+    }
+  }
+
+  .p-button.p-button-text {
+    color: white !important;
+    &:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+}
+
+/* Global Input Focus Rebranding */
+.p-inputtext:enabled:focus, 
+.p-inputnumber-input:enabled:focus, 
+.p-datepicker-input:enabled:focus,
+.p-focus {
+  border-color: #055a87 !important;
+  box-shadow: 0 0 0 0.2rem rgba(5, 90, 135, 0.25) !important;
+}
+
+/* Global Paginator Rebranding */
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight,
+.p-paginator .p-paginator-pages .p-paginator-page.p-paginator-page-selected {
+  background: #055a87 !important;
+  color: #ffffff !important;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover {
+  background: rgba(5, 90, 135, 0.1) !important;
+}
+
+.p-paginator .p-link:focus {
+  box-shadow: 0 0 0 0.2rem rgba(5, 90, 135, 0.25) !important;
+}
+
+.p-paginator .p-paginator-first,
+.p-paginator .p-paginator-prev,
+.p-paginator .p-paginator-next,
+.p-paginator .p-paginator-last {
+    &:focus {
+        box-shadow: 0 0 0 0.2rem rgba(5, 90, 135, 0.25) !important;
+    }
 }
 
 * {

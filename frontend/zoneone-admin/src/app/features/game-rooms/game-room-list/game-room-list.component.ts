@@ -12,18 +12,18 @@ import { InputIconModule } from 'primeng/inputicon';
 import { Observable } from 'rxjs';
 
 @Component({
-    selector: 'app-game-room-list',
-    standalone: true,
-    imports: [
-        CommonModule,
-        TableModule,
-        ButtonModule,
-        InputTextModule,
-        IconFieldModule,
-        InputIconModule
-    ],
-    template: `
-    <div class="list-container">
+  selector: 'app-game-room-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule
+  ],
+  template: `
+    <div class="list-container p-4">
       <div class="list-header">
         <div>
           <h1 class="page-title">Game Rooms / Tables</h1>
@@ -89,7 +89,7 @@ import { Observable } from 'rxjs';
       </p-table>
     </div>
   `,
-    styles: [`
+  styles: [`
     :host ::ng-deep .p-datatable .p-datatable-tbody > tr > td { padding: 0.5rem 0.75rem; }
     :host ::ng-deep .p-datatable .p-datatable-thead > tr > th { padding: 0.5rem 0.75rem; }
     :host ::ng-deep .p-datatable-striped .p-datatable-tbody > tr:nth-child(even) { background-color: #f3f4f6; }
@@ -110,36 +110,36 @@ import { Observable } from 'rxjs';
   `]
 })
 export class GameRoomListComponent {
-    private roomSvc = inject(GameRoomService);
-    private router = inject(Router);
-    private confirmationService = inject(ConfirmationService);
-    private messageService = inject(MessageService);
+  private roomSvc = inject(GameRoomService);
+  private router = inject(Router);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
 
-    rooms$: Observable<GameRoom[]> = this.roomSvc.rooms$;
+  rooms$: Observable<GameRoom[]> = this.roomSvc.rooms$;
 
-    navigateToAdd(): void {
-        this.router.navigate(['/rooms/new']);
-    }
+  navigateToAdd(): void {
+    this.router.navigate(['/rooms/new']);
+  }
 
-    navigateToEdit(id: string): void {
-        this.router.navigate(['/rooms/edit', id]);
-    }
+  navigateToEdit(id: string): void {
+    this.router.navigate(['/rooms/edit', id]);
+  }
 
-    deleteRoom(room: GameRoom): void {
-        this.confirmationService.confirm({
-            message: `Are you sure you want to delete room "${room.roomNo}"?`,
-            header: 'Confirm Deletion',
-            icon: 'pi pi-info-circle',
-            acceptButtonStyleClass: 'p-button-danger p-button-text',
-            rejectButtonStyleClass: 'p-button-text',
-            acceptIcon: 'none',
-            rejectIcon: 'none',
-            accept: () => {
-                this.roomSvc.deleteRoom(room.id).subscribe({
-                    next: () => this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Room deleted successfully' }),
-                    error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not delete room' })
-                });
-            }
+  deleteRoom(room: GameRoom): void {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete room "${room.roomNo}"?`,
+      header: 'Confirm Deletion',
+      icon: 'pi pi-info-circle',
+      acceptButtonStyleClass: 'p-button-danger p-button-text',
+      rejectButtonStyleClass: 'p-button-text',
+      acceptIcon: 'none',
+      rejectIcon: 'none',
+      accept: () => {
+        this.roomSvc.deleteRoom(room.id).subscribe({
+          next: () => this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Room deleted successfully' }),
+          error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not delete room' })
         });
-    }
+      }
+    });
+  }
 }
