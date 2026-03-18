@@ -14,12 +14,17 @@ public record BookingItemCommand(
     DateTime EndTime,
     int NumberOfPersons);
 
+public record BookingExtraCommand(
+    Guid ExtraId,
+    int Quantity);
+
 public record CreateBookingCommand(
     string CustomerName,
     string CustomerPhone,
     string PaymentStatus,
     decimal PaidAmount,
-    List<BookingItemCommand> Items) : IRequest<Result<Guid>>;
+    List<BookingItemCommand> Items,
+    List<BookingExtraCommand>? Extras = null) : IRequest<Result<Guid>>;
 
 public class CreateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
     : IRequestHandler<CreateBookingCommand, Result<Guid>>
@@ -72,6 +77,26 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
                 TableRate = room.RatePerHour,
                 TotalAmount = amountResult.Value
             });
+        }
+
+        if (request.Extras != null)
+        {
+            foreach (var extraReq in request.Extras)
+            {
+                var extra = await context.Extras.FirstOrDefaultAsync(e => e.Id == extraReq.ExtraId, cancellationToken);
+                if (extra == null) continue;
+
+                var extraAmount = extra.Price * extraReq.Quantity;
+                grandTotal += extraAmount;
+
+                bookingMaster.BookingExtras.Add(new BookingExtra
+                {
+                    ExtraId = extraReq.ExtraId,
+                    Quantity = extraReq.Quantity,
+                    UnitPrice = extra.Price,
+                    TotalAmount = extraAmount
+                });
+            }
         }
 
         bookingMaster.TotalPayment = grandTotal;

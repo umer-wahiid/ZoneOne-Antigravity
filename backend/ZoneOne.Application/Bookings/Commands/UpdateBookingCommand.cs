@@ -13,7 +13,8 @@ public record UpdateBookingCommand(
     string CustomerPhone,
     string PaymentStatus,
     decimal PaidAmount,
-    List<BookingItemCommand> Items) : IRequest<Result<bool>>;
+    List<BookingItemCommand> Items,
+    List<BookingExtraCommand>? Extras = null) : IRequest<Result<bool>>;
 
 public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
     : IRequestHandler<UpdateBookingCommand, Result<bool>>
@@ -25,6 +26,7 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
 
         var bookingMaster = await context.BookingMasters
             .Include(b => b.BookingChildren)
+            .Include(b => b.BookingExtras)
             .FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken);
 
         if (bookingMaster == null)
@@ -39,6 +41,11 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
         foreach (var child in bookingMaster.BookingChildren)
         {
             child.IsDeleted = true;
+        }
+
+        foreach (var ex in bookingMaster.BookingExtras)
+        {
+            ex.IsDeleted = true;
         }
 
         decimal grandTotal = 0;
@@ -76,6 +83,27 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
                 TotalAmount = amountResult.Value,
                 BookingMasterId = bookingMaster.Id
             });
+        }
+
+        if (request.Extras != null)
+        {
+            foreach (var extraReq in request.Extras)
+            {
+                var extra = await context.Extras.FirstOrDefaultAsync(e => e.Id == extraReq.ExtraId, cancellationToken);
+                if (extra == null) continue;
+
+                var extraAmount = extra.Price * extraReq.Quantity;
+                grandTotal += extraAmount;
+
+                context.BookingExtras.Add(new BookingExtra
+                {
+                    BookingMasterId = bookingMaster.Id,
+                    ExtraId = extraReq.ExtraId,
+                    Quantity = extraReq.Quantity,
+                    UnitPrice = extra.Price,
+                    TotalAmount = extraAmount
+                });
+            }
         }
 
         bookingMaster.TotalPayment = grandTotal;

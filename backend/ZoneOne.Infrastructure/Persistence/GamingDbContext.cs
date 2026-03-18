@@ -12,6 +12,7 @@ public class GamingDbContext : DbContext, IGamingDbContext
     public DbSet<GameRoom> GameRooms => Set<GameRoom>();
     public DbSet<BookingMaster> BookingMasters => Set<BookingMaster>();
     public DbSet<BookingChild> BookingChildren => Set<BookingChild>();
+    public DbSet<BookingExtra> BookingExtras => Set<BookingExtra>();
     public DbSet<Extra> Extras => Set<Extra>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
@@ -89,6 +90,25 @@ public class GamingDbContext : DbContext, IGamingDbContext
             builder.HasKey(e => e.Id);
             builder.Property(e => e.Name).IsRequired().HasMaxLength(150);
             builder.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            builder.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<BookingExtra>(builder =>
+        {
+            builder.HasKey(e => e.Id);
+            builder.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            builder.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+
+            builder.HasOne(e => e.BookingMaster)
+                   .WithMany(m => m.BookingExtras)
+                   .HasForeignKey(e => e.BookingMasterId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(e => e.Extra)
+                   .WithMany()
+                   .HasForeignKey(e => e.ExtraId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasQueryFilter(e => !e.IsDeleted);
         });
     }

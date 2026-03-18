@@ -12,7 +12,8 @@ public record BookingMasterDto(
     decimal TotalPayment,
     decimal PaidAmount,
     DateTime CreatedAt,
-    List<BookingChildDto> Items);
+    List<BookingChildDto> Items,
+    List<BookingExtraDto> Extras);
 
 public record BookingChildDto(
     Guid Id,
@@ -26,6 +27,14 @@ public record BookingChildDto(
     decimal TableRate,
     decimal TotalAmount);
 
+public record BookingExtraDto(
+    Guid Id,
+    Guid ExtraId,
+    string ExtraName,
+    int Quantity,
+    decimal UnitPrice,
+    decimal TotalAmount);
+
 public record GetBookingsQuery : IRequest<List<BookingMasterDto>>;
 
 public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler<GetBookingsQuery, List<BookingMasterDto>>
@@ -37,6 +46,8 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
                 .ThenInclude(c => c.GameRoom)
             .Include(b => b.BookingChildren)
                 .ThenInclude(c => c.GameCategory)
+            .Include(b => b.BookingExtras)
+                .ThenInclude(e => e.Extra)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -51,7 +62,7 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
             b.BookingChildren.Select(c => new BookingChildDto(
                 c.Id,
                 c.GameRoomId,
-                c.GameRoom.RoomNo, // Assuming RoomNo represents the name
+                c.GameRoom.RoomNo, 
                 c.GameCategoryId,
                 c.GameCategory.Name,
                 c.StartTime,
@@ -59,6 +70,14 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
                 c.TotalPersons,
                 c.TableRate,
                 c.TotalAmount
+            )).ToList(),
+            b.BookingExtras.Select(e => new BookingExtraDto(
+                e.Id,
+                e.ExtraId,
+                e.Extra.Name,
+                e.Quantity,
+                e.UnitPrice,
+                e.TotalAmount
             )).ToList()
         )).ToList();
     }

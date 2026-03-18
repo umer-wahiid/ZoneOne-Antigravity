@@ -12,4 +12,5 @@ public class BookingMaster
     public bool IsDeleted { get; set; }
 
     public ICollection<BookingChild> BookingChildren { get; set; } = new List<BookingChild>();
+    public ICollection<BookingExtra> BookingExtras { get; set; } = new List<BookingExtra>();
 }

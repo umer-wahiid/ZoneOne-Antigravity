@@ -17,8 +17,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { GameCategoryService } from '../../core/services/game-category.service';
 import { GameRoomService } from '../../core/services/game-room.service';
 import { SessionService } from '../../core/services/session.service';
+import { ExtraService } from '../../core/services/extra.service';
 import { GameCategory } from '../../core/models/game-category.model';
 import { GameRoom } from '../../core/models/game-room.model';
+import { Extra } from '../../core/models/extra.model';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 
@@ -30,6 +32,13 @@ export interface CartItem {
   endTime: Date;
   numberOfPersons: number;
   calculatedPrice: number;
+}
+
+export interface ExtraCartItem {
+  id: string;
+  extra: Extra;
+  quantity: number;
+  totalPrice: number;
 }
 
 @Component({
@@ -54,13 +63,12 @@ export interface CartItem {
     <!-- Top Bar -->
     <div class="surface-card p-3 border-round shadow-2 w-full flex flex-column md:flex-row justify-content-between align-items-center mb-4 gap-3">
       <div class="flex align-items-center gap-2">
-        <i class="pi pi-desktop text-2xl text-primary"></i>
-        <span class="text-xl font-bold text-900">POS Terminal</span>
+        <p-button label="All Bookings" icon="pi pi-list" severity="secondary" (onClick)="openBookingsDialog()"></p-button>
       </div>
       <div class="flex flex-wrap align-items-center gap-2">
         <input pInputText type="text" placeholder="Customer Name" [(ngModel)]="customerName" style="width: 220px;" />
         <input pInputText type="text" placeholder="Customer Phone" [(ngModel)]="customerPhone" style="width: 160px;" />
-        <p-button label="All Bookings" icon="pi pi-list" severity="secondary" (onClick)="openBookingsDialog()"></p-button>
+        <p-button label="Extras" icon="pi pi-box" severity="info" (onClick)="openExtrasDialog()"></p-button>
       </div>
     </div>
 
@@ -145,12 +153,34 @@ export interface CartItem {
                   </td>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="3" class="text-center text-500 p-4">No rooms added yet.</td>
-                </tr>
-              </ng-template>
             </p-table>
+
+            <div class="mt-3" *ngIf="cartExtras().length > 0">
+              <div class="text-sm font-semibold text-500 mb-2 uppercase tracking-wider">Extras</div>
+              <p-table [value]="cartExtras()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+                <ng-template pTemplate="header">
+                  <tr *ngIf="cartExtras().length > 0">
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th class="w-4rem text-center"></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-ex>
+                  <tr>
+                    <td>
+                      <div class="font-bold text-900">{{ ex.extra.name }}</div>
+                      <div class="text-xs text-500">{{ ex.quantity }} x {{ ex.extra.price | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                    </td>
+                    <td>
+                      <div class="text-sm font-bold text-green-600">{{ ex.totalPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                    </td>
+                    <td class="text-center w-4rem p-0">
+                      <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" size="small" (onClick)="removeExtraItem(ex.id)"></p-button>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
           </div>
 
           <!-- Checkout Footer -->
@@ -175,7 +205,7 @@ export interface CartItem {
               </div>
             </div>
 
-            <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="cartItems().length === 0 || !customerName.trim()"></p-button>
+            <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="(cartItems().length === 0 && cartExtras().length === 0) || !customerName.trim()"></p-button>
           </div>
 
         </div>
@@ -264,6 +294,36 @@ export interface CartItem {
     </p-table>
   </p-dialog>
 
+  <!-- Extras Dialog -->
+  <p-dialog header="Select Extras" [modal]="true" [(visible)]="showExtrasDialog" [style]="{ width: '500px' }">
+    <p-table [value]="availableExtras()" responsiveLayout="scroll" [rows]="5" [paginator]="availableExtras().length > 5">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Item Name</th>
+          <th>Price</th>
+          <th class="w-8rem">Quantity</th>
+          <th class="w-4rem"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-extra>
+        <tr>
+          <td>
+            <div class="font-bold">{{ extra.name }}</div>
+          </td>
+          <td class="text-green-600 font-bold">{{ extra.price | currency:'PKR ':'symbol':'1.0-0' }}</td>
+          <td>
+             <p-inputNumber [(ngModel)]="extra.tempQty" [min]="0" [showButtons]="true" buttonLayout="horizontal" 
+                          spinnerMode="horizontal" inputStyleClass="text-center w-3rem" class="w-full"
+                          decrementButtonClass="p-button-secondary" incrementButtonClass="p-button-secondary"
+                          incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus"
+                          (onInput)="onExtraQtyChange(extra, $event.value)"></p-inputNumber>
+          </td>
+          <td></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-dialog>
+
   <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
   `,
   styles: [`
@@ -278,6 +338,7 @@ export class DashboardComponent implements OnInit {
 
   // Cart state
   cartItems = signal<CartItem[]>([]);
+  cartExtras = signal<ExtraCartItem[]>([]);
   editingCartItemId = signal<string | null>(null);
 
   // Customer Profile
@@ -301,6 +362,9 @@ export class DashboardComponent implements OnInit {
 
   calculatedPrice = signal<number | null>(null);
 
+  availableExtras = signal<any[]>([]);
+  showExtrasDialog = false;
+
   // Derived State (Computed)
   filteredRooms = computed(() => {
     const cat = this.selectedCategory();
@@ -309,7 +373,9 @@ export class DashboardComponent implements OnInit {
   });
 
   grandTotal = computed(() => {
-    return this.cartItems().reduce((acc, item) => acc + item.calculatedPrice, 0);
+    const itemsTotal = this.cartItems().reduce((acc, item) => acc + item.calculatedPrice, 0);
+    const extrasTotal = this.cartExtras().reduce((acc, item) => acc + item.totalPrice, 0);
+    return itemsTotal + extrasTotal;
   });
 
   showDialog = false;
@@ -318,6 +384,7 @@ export class DashboardComponent implements OnInit {
   private fb = inject(FormBuilder);
   private catSvc = inject(GameCategoryService);
   private roomSvc = inject(GameRoomService);
+  private extraSvc = inject(ExtraService);
   private sessionSvc = inject(SessionService);
   private messageSvc = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
@@ -335,6 +402,10 @@ export class DashboardComponent implements OnInit {
     // Explicitly refetch on dashboard mount so the cache gets updated if they changed screens
     this.catSvc.getCategoriesFromApi().subscribe(c => (this.catSvc as any)['categoriesSubject'].next(c));
     (this.roomSvc as any)['refreshRooms']();
+
+    this.extraSvc.getExtras().pipe(takeUntil(this.destroy$)).subscribe(extras => {
+      this.availableExtras.set(extras.map(e => ({ ...e, tempQty: 0 })));
+    });
   }
 
   ngOnDestroy() {
@@ -404,10 +475,14 @@ export class DashboardComponent implements OnInit {
 
   clearCart() {
     this.cartItems.set([]);
+    this.cartExtras.set([]);
     this.customerName = '';
     this.customerPhone = '';
     this.cashReceived.set(0);
     this.editingBookingId.set(null);
+
+    // Sync dialog quantities back to 0
+    this.availableExtras.update(extras => extras.map(e => ({ ...e, tempQty: 0 })));
   }
 
   cancelSelection() {
@@ -474,48 +549,52 @@ export class DashboardComponent implements OnInit {
 
   checkoutCart() {
     if (this.cartItems().length === 0 || !this.customerName.trim()) {
-       this.messageSvc.add({ severity: 'warn', summary: 'Missing Info', detail: 'Please provide Customer Name and add slots to cart.' });
-       return;
+      this.messageSvc.add({ severity: 'warn', summary: 'Missing Info', detail: 'Please provide Customer Name and add slots to cart.' });
+      return;
     }
 
     const bookingId = this.editingBookingId();
     const paymentStatus = this.cashRemaining() <= 0 ? 'Done' : 'Pending';
 
     const payload = {
-       id: bookingId || '',
-       customerName: this.customerName,
-       customerPhone: this.customerPhone,
-       paymentStatus,
-       paidAmount: this.cashReceived(),
-       items: this.cartItems().map(item => ({
-          gameRoomId: item.room.id,
-          gameCategoryId: item.category.id,
-          startTime: item.startTime.toISOString(),
-          endTime: item.endTime.toISOString(),
-          numberOfPersons: item.numberOfPersons
-       }))
+      id: bookingId || '',
+      customerName: this.customerName,
+      customerPhone: this.customerPhone,
+      paymentStatus,
+      paidAmount: this.cashReceived(),
+      items: this.cartItems().map(item => ({
+        gameRoomId: item.room.id,
+        gameCategoryId: item.category.id,
+        startTime: item.startTime.toISOString(),
+        endTime: item.endTime.toISOString(),
+        numberOfPersons: item.numberOfPersons
+      })),
+      extras: this.cartExtras().map(ex => ({
+        extraId: ex.extra.id,
+        quantity: ex.quantity
+      }))
     };
 
     if (bookingId) {
-       this.sessionSvc.updateBooking(bookingId, payload).subscribe({
-         next: () => {
-           this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Ticket completely updated!' });
-           this.clearCart();
-         },
-         error: (err) => {
-           this.messageSvc.add({ severity: 'error', summary: 'Update Failed', detail: err.error?.message || 'Failed to update ticket.' });
-         }
-       });
+      this.sessionSvc.updateBooking(bookingId, payload).subscribe({
+        next: () => {
+          this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Ticket completely updated!' });
+          this.clearCart();
+        },
+        error: (err) => {
+          this.messageSvc.add({ severity: 'error', summary: 'Update Failed', detail: err.error?.message || 'Failed to update ticket.' });
+        }
+      });
     } else {
-       this.sessionSvc.checkoutBooking(payload).subscribe({
-         next: () => {
-           this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
-           this.clearCart();
-         },
-         error: (err) => {
-           this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
-         }
-       });
+      this.sessionSvc.checkoutBooking(payload).subscribe({
+        next: () => {
+          this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
+          this.clearCart();
+        },
+        error: (err) => {
+          this.messageSvc.add({ severity: 'error', summary: 'Checkout Failed', detail: err.error?.message || 'Failed to submit booking.' });
+        }
+      });
     }
   }
 
@@ -526,6 +605,50 @@ export class DashboardComponent implements OnInit {
         this.showBookingsDialog = true;
       },
       error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Failed to load bookings.' })
+    });
+  }
+
+  openExtrasDialog() {
+    this.showExtrasDialog = true;
+  }
+
+  onExtraQtyChange(extra: any, qty: number | null) {
+    const finalQty = qty || 0;
+    extra.tempQty = finalQty; // ensure binding sync
+
+    this.cartExtras.update(items => {
+      const existing = items.find(i => i.extra.id === extra.id);
+
+      if (finalQty <= 0) {
+        return items.filter(i => i.extra.id !== extra.id);
+      }
+
+      if (existing) {
+        return items.map(i => i.extra.id === extra.id
+          ? { ...i, quantity: finalQty, totalPrice: extra.price * finalQty }
+          : i
+        );
+      } else {
+        return [...items, {
+          id: Math.random().toString(36).substring(2, 9),
+          extra: extra,
+          quantity: finalQty,
+          totalPrice: extra.price * finalQty
+        }];
+      }
+    });
+  }
+
+  removeExtraItem(id: string) {
+    this.cartExtras.update(items => {
+      const removed = items.find(i => i.id === id);
+      if (removed) {
+        // Sync back to availableExtras dialog
+        this.availableExtras.update(extras => extras.map(e =>
+          e.id === removed.extra.id ? { ...e, tempQty: 0 } : e
+        ));
+      }
+      return items.filter(i => i.id !== id);
     });
   }
 
@@ -550,7 +673,7 @@ export class DashboardComponent implements OnInit {
 
   editBooking(booking: any) {
     this.clearCart();
-    
+
     this.editingBookingId.set(booking.id);
     this.customerName = booking.customerName;
     this.customerPhone = booking.customerPhone;
@@ -567,6 +690,21 @@ export class DashboardComponent implements OnInit {
     }));
 
     this.cartItems.set(mappedCartItems);
+
+    const mappedExtras: ExtraCartItem[] = (booking.extras || []).map((ex: any) => ({
+      id: Math.random().toString(36).substring(2, 9),
+      extra: { id: ex.extraId, name: ex.extraName, price: ex.unitPrice } as Extra,
+      quantity: ex.quantity,
+      totalPrice: ex.totalAmount
+    }));
+    this.cartExtras.set(mappedExtras);
+
+    // Sync dialog quantities for edit mode
+    this.availableExtras.update(extras => extras.map(e => {
+      const cartEx = mappedExtras.find(me => me.extra.id === e.id);
+      return { ...e, tempQty: cartEx ? cartEx.quantity : 0 };
+    }));
+
     this.showBookingsDialog = false;
     this.messageSvc.add({ severity: 'info', summary: 'Edit Mode Enabled', detail: `Editing ticket for ${booking.customerName}` });
   }
