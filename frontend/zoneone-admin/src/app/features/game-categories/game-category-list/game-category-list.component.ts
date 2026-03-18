@@ -23,7 +23,7 @@ import { Observable } from 'rxjs';
     InputIconModule
   ],
   template: `
-    <div class="list-container">
+    <div class="list-container p-4">
       <div class="list-header">
         <div>
           <h1 class="page-title">Game Categories</h1>

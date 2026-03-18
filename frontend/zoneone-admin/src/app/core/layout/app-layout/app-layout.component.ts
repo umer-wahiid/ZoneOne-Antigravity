@@ -92,7 +92,7 @@ import { filter } from 'rxjs';
       font-weight: 800;
       letter-spacing: 1px;
       white-space: nowrap;
-      .highlight { color: #60a5fa; }
+      .highlight { color: #055a87; }
     }
 
     .toggle-btn {
@@ -152,8 +152,8 @@ import { filter } from 'rxjs';
 
         &.active {
           color: #ffffff;
-          background-color: rgba(96, 165, 250, 0.12);
-          border-left-color: #60a5fa;
+          background-color: rgba(5, 90, 135, 0.15);
+          border-left-color: #055a87;
           font-weight: 600;
         }
       }

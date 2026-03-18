@@ -83,7 +83,7 @@ export interface ExtraCartItem {
               <div 
                 class="surface-100 p-3 border-round shadow-1 cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-3 flex flex-column align-items-center justify-content-center text-center h-7rem border-2 border-transparent"
                 [class.border-primary]="selectedCategory()?.id === cat.id"
-                [class.bg-blue-50]="selectedCategory()?.id === cat.id"
+                [style.background-color]="selectedCategory()?.id === cat.id ? 'rgba(5, 90, 135, 0.1)' : ''"
                 (click)="onCategorySelect(cat)">
                 <i class="pi pi-tags text-2xl text-primary mb-2"></i>
                 <div class="font-bold">{{ cat.name }}</div>
@@ -100,7 +100,7 @@ export interface ExtraCartItem {
               <div 
                 class="surface-100 p-3 border-round shadow-1 cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-3 flex flex-column align-items-center justify-content-center text-center h-8rem border-2 border-transparent relative"
                 [class.border-primary]="selectedRoom()?.id === room.id && !editingCartItemId()"
-                [class.bg-blue-50]="selectedRoom()?.id === room.id && !editingCartItemId()"
+                [style.background-color]="selectedRoom()?.id === room.id && !editingCartItemId() ? 'rgba(5, 90, 135, 0.1)' : ''"
                 (click)="onRoomSelect(room)">
                 <div class="absolute top-0 right-0 p-2 text-xs font-semibold text-500" title="Max Persons">
                   <i class="pi pi-users mr-1"></i>{{ room.maxPlayers }}
@@ -121,7 +121,7 @@ export interface ExtraCartItem {
         <div class="surface-card p-4 border-round shadow-2 h-full flex flex-column">
           <div class="text-xl font-semibold mb-3 flex justify-content-between align-items-center">
             <div class="flex align-items-center gap-2">
-              <i class="pi pi-shopping-cart text-green-500"></i> Current Cart
+              <i class="pi pi-shopping-cart" style="color: #055a87;"></i> Current Cart
             </div>
             <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" *ngIf="cartItems().length > 0" (onClick)="clearCart()" pTooltip="Clear List"></p-button>
           </div>
@@ -143,7 +143,7 @@ export interface ExtraCartItem {
                   </td>
                   <td>
                     <div class="text-sm font-medium">{{ item.startTime | date:'shortTime' }} - {{ item.endTime | date:'shortTime' }}</div>
-                    <div class="text-sm font-bold text-green-600">{{ item.calculatedPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                    <div class="text-sm font-bold" style="color: #055a87;">{{ item.calculatedPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
                   </td>
                   <td class="text-center p-0">
                     <div class="flex flex-column gap-1">
@@ -172,7 +172,7 @@ export interface ExtraCartItem {
                       <div class="text-xs text-500">{{ ex.quantity }} x {{ ex.extra.price | currency:'PKR ':'symbol':'1.0-0' }}</div>
                     </td>
                     <td>
-                      <div class="text-sm font-bold text-green-600">{{ ex.totalPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                      <div class="text-sm font-bold" style="color: #055a87;">{{ ex.totalPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
                     </td>
                     <td class="text-center w-4rem p-0">
                       <p-button icon="pi pi-times" [text]="true" [rounded]="true" severity="danger" size="small" (onClick)="removeExtraItem(ex.id)"></p-button>
@@ -187,7 +187,7 @@ export interface ExtraCartItem {
           <div class="mt-3 pt-3 border-top-1 border-300">
             <div class="flex justify-content-between align-items-center mb-2">
               <span class="text-xl font-semibold text-700">Grand Total</span>
-              <span class="text-2xl font-bold text-green-600">{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</span>
+              <span class="text-2xl font-bold" style="color: #055a87;">{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</span>
             </div>
 
             <!-- Payment Fields -->
@@ -199,7 +199,7 @@ export interface ExtraCartItem {
               </div>
               <div class="flex align-items-center justify-content-between surface-100 border-round p-2">
                 <span class="text-600 font-medium">Remaining</span>
-                <span class="font-bold text-lg" [class.text-red-500]="cashRemaining() > 0" [class.text-green-600]="cashRemaining() <= 0">
+                <span class="font-bold text-lg" [class.text-red-500]="cashRemaining() > 0" [style.color]="cashRemaining() <= 0 ? '#055a87' : ''">
                   {{ cashRemaining() | currency:'PKR ':'symbol':'1.0-0' }}
                 </span>
               </div>
@@ -240,9 +240,9 @@ export interface ExtraCartItem {
       </div>
 
       <!-- Preview Price Box -->
-      <div *ngIf="calculatedPrice() !== null" class="mt-3 p-3 bg-green-50 border-green-200 border-1 border-round text-center">
-        <div class="text-green-800 font-medium mb-1">Estimated Total</div>
-        <div class="text-3xl font-bold text-green-600">{{ calculatedPrice() | currency:'PKR ':'symbol':'1.0-0' }}</div>
+      <div *ngIf="calculatedPrice() !== null" class="mt-3 p-3 border-1 border-round text-center" style="background-color: rgba(5, 90, 135, 0.05); border-color: rgba(5, 90, 135, 0.2);">
+        <div class="font-medium mb-1" style="color: #055a87;">Estimated Total</div>
+        <div class="text-3xl font-bold" style="color: #055a87;">{{ calculatedPrice() | currency:'PKR ':'symbol':'1.0-0' }}</div>
       </div>
     </form>
 
@@ -273,9 +273,9 @@ export interface ExtraCartItem {
           <td class="font-mono text-xs">{{ booking.id.substring(0, 8) }}...</td>
           <td class="font-bold">{{ booking.customerName }}</td>
           <td>{{ booking.customerPhone }}</td>
-          <td class="text-green-600 font-bold">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
+          <td class="font-bold text-primary">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
           <td>
-            <span class="p-badge p-badge-success">{{ booking.paymentStatus }}</span>
+            <span class="p-badge" [style.background-color]="booking.paymentStatus === 'Done' ? '#055a87' : '#f97316'">{{ booking.paymentStatus }}</span>
           </td>
           <td>{{ booking.createdAt | date:'short' }}</td>
           <td class="text-center p-0">
@@ -310,7 +310,7 @@ export interface ExtraCartItem {
           <td>
             <div class="font-bold">{{ extra.name }}</div>
           </td>
-          <td class="text-green-600 font-bold">{{ extra.price | currency:'PKR ':'symbol':'1.0-0' }}</td>
+          <td class="font-bold" style="color: #055a87;">{{ extra.price | currency:'PKR ':'symbol':'1.0-0' }}</td>
           <td>
              <p-inputNumber [(ngModel)]="extra.tempQty" [min]="0" [showButtons]="true" buttonLayout="horizontal" 
                           spinnerMode="horizontal" inputStyleClass="text-center w-3rem" class="w-full"
