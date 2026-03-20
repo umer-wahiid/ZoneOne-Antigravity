@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-layout',
@@ -39,10 +40,14 @@ import { filter } from 'rxjs';
           </nav>
         </div>
         <div class="sidebar-bottom">
-          <div class="user-info">
-            <div class="avatar">A</div>
-            <span class="user-name">Admin</span>
+          <div class="user-info mb-3">
+            <div class="avatar">{{ user()?.fullName?.substring(0, 1) || 'U' }}</div>
+            <span class="user-name">{{ user()?.fullName || 'User' }}</span>
           </div>
+          <a class="nav-link logout-btn" (click)="onLogout()" [title]="collapsed ? 'Logout' : ''">
+             <i class="pi pi-power-off"></i>
+             <span class="link-text">Logout</span>
+          </a>
         </div>
       </aside>
 
@@ -177,7 +182,9 @@ import { filter } from 'rxjs';
     .collapsed .sidebar-bottom {
       padding: 1rem 0;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
     }
 
     .user-info {
@@ -206,6 +213,38 @@ import { filter } from 'rxjs';
       }
     }
 
+    .collapsed .user-info {
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 0 !important;
+    }
+
+    .logout-btn {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.25rem;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.15s ease;
+      border-radius: 8px;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: #f87171;
+      }
+
+      i { font-size: 1rem; }
+    }
+
+    .collapsed .logout-btn {
+        justify-content: center;
+        padding: 0.65rem 0;
+        width: 100%;
+    }
+
     /* ---- Main content ---- */
     .main-content {
       flex: 1;
@@ -223,6 +262,9 @@ import { filter } from 'rxjs';
 export class AppLayoutComponent implements OnInit {
   collapsed = false;
   private router = inject(Router);
+  private authService = inject(AuthService);
+  
+  user = signal(this.authService.currentUserValue);
 
   ngOnInit() {
     // Initial check
@@ -236,5 +278,14 @@ export class AppLayoutComponent implements OnInit {
         this.collapsed = true;
       }
     });
+
+    // Update user signal when auth state changes
+    this.authService.currentUser$.subscribe(user => {
+        this.user.set(user);
+    });
+  }
+
+  onLogout() {
+    this.authService.logout();
   }
 }

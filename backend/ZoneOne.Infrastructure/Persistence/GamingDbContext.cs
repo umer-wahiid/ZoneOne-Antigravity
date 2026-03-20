@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ZoneOne.Application.Common.Interfaces;
 using ZoneOne.Domain.Entities;
+using ZoneOne.Infrastructure.Identity;
 
 namespace ZoneOne.Infrastructure.Persistence;
 
-public class GamingDbContext : DbContext, IGamingDbContext
+public class GamingDbContext : IdentityDbContext<ApplicationUser>, IGamingDbContext
 {
     public GamingDbContext(DbContextOptions<GamingDbContext> options) : base(options) { }
 

@@ -1,9 +1,15 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
     {
+        path: 'login',
+        loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+    },
+    {
         path: '',
         loadComponent: () => import('./core/layout/app-layout/app-layout.component').then(m => m.AppLayoutComponent),
+        canActivate: [authGuard],
         children: [
             { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
             {
@@ -47,5 +53,6 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/extras/extra-form/extra-form.component').then(m => m.ExtraFormComponent)
             }
         ]
-    }
+    },
+    { path: '**', redirectTo: 'dashboard' }
 ];
