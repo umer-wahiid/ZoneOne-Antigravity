@@ -281,3 +281,20 @@ button {
 .p-datatable .p-datatable-tbody>tr {
   height: auto;
 }
+
+/* Global Toast Rebranding - Force Success to Brand Blue */
+.p-toast .p-toast-message-success {
+  background: rgba(5, 90, 135, 0.1) !important;
+  border-color: #055a87 !important;
+  color: #055a87 !important;
+}
+
+.p-toast .p-toast-message-success .p-toast-message-icon,
+.p-toast .p-toast-message-success .p-toast-icon-close {
+  color: #055a87 !important;
+}
+
+.p-toast .p-toast-message-success .p-toast-message-summary,
+.p-toast .p-toast-message-success .p-toast-message-detail {
+  color: #055a87 !important;
+}
