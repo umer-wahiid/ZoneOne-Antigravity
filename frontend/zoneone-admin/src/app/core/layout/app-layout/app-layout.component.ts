@@ -25,6 +25,10 @@ import { AuthService } from '../../services/auth.service';
               <i class="pi pi-desktop"></i>
               <span class="link-text">Dashboard</span>
             </a>
+            <a routerLink="/users" routerLinkActive="active" [title]="collapsed ? 'User Management' : ''">
+              <i class="pi pi-users"></i>
+              <span class="link-text">User Management</span>
+            </a>
             <a routerLink="/categories" routerLinkActive="active" [title]="collapsed ? 'Categories' : ''">
               <i class="pi pi-th-large"></i>
               <span class="link-text">Categories</span>

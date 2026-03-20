@@ -29,6 +29,10 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/game-categories/game-category-form/game-category-form.component').then(m => m.GameCategoryFormComponent)
             },
             {
+                path: 'users',
+                loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent)
+            },
+            {
                 path: 'rooms',
                 loadComponent: () => import('./features/game-rooms/game-room-list/game-room-list.component').then(m => m.GameRoomListComponent)
             },

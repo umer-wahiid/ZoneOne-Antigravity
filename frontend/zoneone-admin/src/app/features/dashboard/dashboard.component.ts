@@ -12,6 +12,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 // Services & Models
 import { GameCategoryService } from '../../core/services/game-category.service';
@@ -55,6 +58,9 @@ export interface ExtraCartItem {
     InputNumberModule,
     DatePickerModule,
     InputTextModule,
+    SelectModule,
+    IconFieldModule,
+    InputIconModule,
     ConfirmDialogModule
   ],
   providers: [ConfirmationService],
@@ -256,15 +262,47 @@ export interface ExtraCartItem {
 
   <!-- All Bookings Dialog -->
   <p-dialog header="Booking History" [modal]="true" [(visible)]="showBookingsDialog" [style]="{ width: '80vw' }" [maximizable]="true">
-    <p-table [value]="bookingsList()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="10">
+    <p-table #dtBookings [value]="bookingsList()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped" 
+             [paginator]="true" [rows]="10" [globalFilterFields]="['id', 'customerName', 'customerPhone', 'paymentStatus']">
+      <ng-template pTemplate="caption">
+          <div class="flex justify-content-end">
+              <p-iconField iconPosition="left">
+                  <p-inputIcon styleClass="pi pi-search" />
+                  <input pInputText type="text" #filter (input)="dtBookings.filterGlobal(filter.value, 'contains')" 
+                         placeholder="Global Search..." />
+              </p-iconField>
+          </div>
+      </ng-template>
       <ng-template pTemplate="header">
         <tr>
-          <th>ID</th>
-          <th>Customer</th>
-          <th>Phone</th>
-          <th>Total Payment</th>
-          <th>Status</th>
-          <th>Date</th>
+          <th pSortableColumn="id">
+            <div class="flex align-items-center gap-1">ID <p-sortIcon field="id"></p-sortIcon> <p-columnFilter type="text" field="id" display="menu"></p-columnFilter></div>
+          </th>
+          <th pSortableColumn="customerName">
+            <div class="flex align-items-center gap-1">Customer <p-sortIcon field="customerName"></p-sortIcon> <p-columnFilter type="text" field="customerName" display="menu"></p-columnFilter></div>
+          </th>
+          <th pSortableColumn="customerPhone">
+            <div class="flex align-items-center gap-1">Phone <p-sortIcon field="customerPhone"></p-sortIcon> <p-columnFilter type="text" field="customerPhone" display="menu"></p-columnFilter></div>
+          </th>
+          <th pSortableColumn="totalPayment">
+            <div class="flex align-items-center gap-1">Total Payment <p-sortIcon field="totalPayment"></p-sortIcon></div>
+          </th>
+          <th pSortableColumn="paymentStatus">
+            <div class="flex align-items-center gap-1">
+                Status <p-sortIcon field="paymentStatus"></p-sortIcon>
+                <p-columnFilter field="paymentStatus" matchMode="equals" display="menu">
+                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                        <p-select [ngModel]="value" [options]="[{label: 'Done', value: 'Done'}, {label: 'Pending', value: 'Pending'}]" 
+                                 (onChange)="filter($event.value)" placeholder="Status" [showClear]="true" appendTo="body"
+                                 optionLabel="label" optionValue="value">
+                        </p-select>
+                    </ng-template>
+                </p-columnFilter>
+            </div>
+          </th>
+          <th pSortableColumn="createdAt">
+            <div class="flex align-items-center gap-1">Date <p-sortIcon field="createdAt"></p-sortIcon> <p-columnFilter type="date" field="createdAt" display="menu"></p-columnFilter></div>
+          </th>
           <th class="w-8rem text-center">Actions</th>
         </tr>
       </ng-template>
@@ -273,9 +311,9 @@ export interface ExtraCartItem {
           <td class="font-mono text-xs">{{ booking.id.substring(0, 8) }}...</td>
           <td class="font-bold">{{ booking.customerName }}</td>
           <td>{{ booking.customerPhone }}</td>
-          <td class="font-bold text-primary">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
-          <td class="font-bold">
-            <span [style.color]="booking.paymentStatus === 'Done' ? '#055a87' : '#ef4444'">{{ booking.paymentStatus }}</span>
+          <td class="font-bold" style="color: #055a87;">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
+          <td>
+            <span [style.color]="booking.paymentStatus === 'Done' ? '#055a87' : '#ef4444'" class="font-bold">{{ booking.paymentStatus }}</span>
           </td>
           <td>{{ booking.createdAt | date:'short' }}</td>
           <td class="text-center p-0">

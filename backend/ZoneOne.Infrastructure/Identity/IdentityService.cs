@@ -44,7 +44,7 @@ public class IdentityService(
         var user = new ApplicationUser
         {
             UserName = userName,
-            Email = userName, // For simplicity
+            Email = userName, 
             FullName = fullName,
             Role = Enum.Parse<UserRole>(role)
         };
@@ -56,5 +56,59 @@ public class IdentityService(
         }
 
         return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> UpdateUserAsync(string userId, string userName, string fullName, string role, string? password)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return Result<bool>.Failure("User not found.");
+
+        user.UserName = userName;
+        user.Email = userName; // Keep consistent
+        user.FullName = fullName;
+        user.Role = Enum.Parse<UserRole>(role);
+
+        var result = await userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return Result<bool>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(password))
+        {
+             var token = await userManager.GeneratePasswordResetTokenAsync(user);
+             var resetResult = await userManager.ResetPasswordAsync(user, token, password);
+             if (!resetResult.Succeeded)
+             {
+                 return Result<bool>.Failure("Updated profile, but password reset failed: " + string.Join(", ", resetResult.Errors.Select(e => e.Description)));
+             }
+        }
+
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> DeleteUserAsync(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return Result<bool>.Failure("User not found.");
+
+        if (user.UserName?.ToLower() == "admin")
+        {
+            return Result<bool>.Failure("Primary admin user cannot be deleted.");
+        }
+
+        var result = await userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            return Result<bool>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<List<UserDto>> GetUsersAsync()
+    {
+        var users = await Task.FromResult(userManager.Users.OrderBy(u => u.FullName).ToList());
+        return users.Select(u => new UserDto(u.Id, u.UserName!, u.FullName ?? string.Empty, u.Role.ToString())).ToList();
     }
 }
