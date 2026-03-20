@@ -43,9 +43,9 @@ import { UserService, UserDto } from '../../../core/services/user.service';
 
       <p-table #dt [value]="users()" [loading]="loading()" responsiveLayout="scroll"
                [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25]"
-               [showGridlines]="true" [stripedRows]="true"
+               [showGridlines]="false" [stripedRows]="true"
                [globalFilterFields]="['fullName', 'userName', 'role']"
-               styleClass="p-datatable-sm shadow-2">
+               styleClass="p-datatable-sm">
         <ng-template pTemplate="caption">
             <div class="flex justify-content-end">
                 <p-iconField iconPosition="left">
@@ -112,7 +112,7 @@ import { UserService, UserDto } from '../../../core/services/user.service';
       <!-- User Form Dialog -->
       <p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Edit User' : 'Create User'" 
                 [modal]="true" [style]="{width: '500px'}" styleClass="p-fluid shadow-6"
-                [draggable]="false" [resizable]="false">
+                [draggable]="false" [resizable]="false" [dismissableMask]="true">
         <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="flex flex-column gap-3 mt-3">
           
           <div class="field">

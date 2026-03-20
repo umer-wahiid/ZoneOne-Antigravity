@@ -29,9 +29,9 @@ import { AuthService } from '../../services/auth.service';
               <i class="pi pi-users"></i>
               <span class="link-text">User Management</span>
             </a>
-            <a routerLink="/categories" routerLinkActive="active" [title]="collapsed ? 'Categories' : ''">
+            <a routerLink="/categories" routerLinkActive="active" [title]="collapsed ? 'Games' : ''">
               <i class="pi pi-th-large"></i>
-              <span class="link-text">Categories</span>
+              <span class="link-text">Games</span>
             </a>
             <a routerLink="/rooms" routerLinkActive="active" [title]="collapsed ? 'Rooms / Tables' : ''">
               <i class="pi pi-building"></i>
@@ -180,7 +180,7 @@ import { AuthService } from '../../services/auth.service';
 
     /* Bottom */
     .sidebar-bottom {
-      padding: 1rem 1.25rem;
+      padding: 1rem 0;
       border-top: 1px solid rgba(255,255,255,0.08);
     }
     .collapsed .sidebar-bottom {
@@ -195,6 +195,8 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      padding: 0 1.25rem;
+      margin-bottom: 0.75rem;
 
       .avatar {
         width: 34px; height: 34px;
@@ -219,7 +221,7 @@ import { AuthService } from '../../services/auth.service';
 
     .collapsed .user-info {
         justify-content: center;
-        width: 100%;
+        padding: 0;
         margin-bottom: 0 !important;
     }
 
@@ -233,20 +235,22 @@ import { AuthService } from '../../services/auth.service';
       font-weight: 500;
       font-size: 0.9rem;
       transition: all 0.15s ease;
-      border-radius: 8px;
       
       &:hover {
         background: rgba(239, 68, 68, 0.1);
         color: #f87171;
       }
 
-      i { font-size: 1rem; }
+      i { 
+        font-size: 1rem; 
+        min-width: 34px; 
+        text-align: center;
+      }
     }
 
     .collapsed .logout-btn {
         justify-content: center;
         padding: 0.65rem 0;
-        width: 100%;
     }
 
     /* ---- Main content ---- */
@@ -267,7 +271,7 @@ export class AppLayoutComponent implements OnInit {
   collapsed = false;
   private router = inject(Router);
   private authService = inject(AuthService);
-  
+
   user = signal(this.authService.currentUserValue);
 
   ngOnInit() {
@@ -285,7 +289,7 @@ export class AppLayoutComponent implements OnInit {
 
     // Update user signal when auth state changes
     this.authService.currentUser$.subscribe(user => {
-        this.user.set(user);
+      this.user.set(user);
     });
   }
 

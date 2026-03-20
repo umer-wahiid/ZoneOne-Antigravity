@@ -220,7 +220,7 @@ export interface ExtraCartItem {
   </div>
 
   <!-- Session Dialog -->
-  <p-dialog [header]="editingCartItemId() ? 'Update Selected Slot' : 'New Slot Booking'" [modal]="true" [(visible)]="showDialog" [style]="{ width: '450px' }" (onHide)="cancelSelection()">
+  <p-dialog [header]="editingCartItemId() ? 'Update Selected Slot' : 'New Slot Booking'" [modal]="true" [(visible)]="showDialog" [style]="{ width: '450px' }" (onHide)="cancelSelection()" [dismissableMask]="true">
     <div class="flex align-items-center gap-3 mb-4 surface-100 p-3 border-round">
       <i class="pi pi-building text-2xl text-primary"></i>
       <div>
@@ -261,7 +261,7 @@ export interface ExtraCartItem {
   </p-dialog>
 
   <!-- All Bookings Dialog -->
-  <p-dialog header="Booking History" [modal]="true" [(visible)]="showBookingsDialog" [style]="{ width: '80vw' }" [maximizable]="true">
+  <p-dialog header="Booking History" [modal]="true" [(visible)]="showBookingsDialog" [style]="{ width: '80vw' }" [maximizable]="true" [dismissableMask]="true">
     <p-table #dtBookings [value]="bookingsList()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped" 
              [paginator]="true" [rows]="10" [globalFilterFields]="['id', 'customerName', 'customerPhone', 'paymentStatus']">
       <ng-template pTemplate="caption">
@@ -333,7 +333,7 @@ export interface ExtraCartItem {
   </p-dialog>
 
   <!-- Extras Dialog -->
-  <p-dialog header="Select Extras" [modal]="true" [(visible)]="showExtrasDialog" [style]="{ width: '500px' }">
+  <p-dialog header="Select Extras" [modal]="true" [(visible)]="showExtrasDialog" [style]="{ width: '500px' }" [dismissableMask]="true">
     <p-table [value]="availableExtras()" responsiveLayout="scroll" [rows]="5" [paginator]="availableExtras().length > 5">
       <ng-template pTemplate="header">
         <tr>
