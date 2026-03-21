@@ -7,26 +7,20 @@ namespace ZoneOne.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GameCategoriesController : ControllerBase
+public class GameCategoriesController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public GameCategoriesController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<GameCategoryDto>>> GetCategories()
     {
-        var result = await _mediator.Send(new GetGameCategoriesQuery());
+        var result = await mediator.Send(new GetGameCategoriesQuery());
         return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<GameCategoryDto>> GetCategory(Guid id)
     {
-        var result = await _mediator.Send(new GetGameCategoryByIdQuery(id));
+        var result = await mediator.Send(new GetGameCategoryByIdQuery(id));
         if (result == null) return NotFound();
         return Ok(result);
     }
@@ -34,7 +28,7 @@ public class GameCategoriesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateGameCategoryCommand command)
     {
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         return CreatedAtAction(nameof(GetCategory), new { id = result }, result);
     }
 
@@ -43,7 +37,7 @@ public class GameCategoriesController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
 
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         if (!result) return NotFound();
 
         return NoContent();
@@ -52,7 +46,7 @@ public class GameCategoriesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var result = await _mediator.Send(new DeleteGameCategoryCommand(id));
+        var result = await mediator.Send(new DeleteGameCategoryCommand(id));
         if (!result) return NotFound();
 
         return NoContent();

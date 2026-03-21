@@ -7,26 +7,20 @@ namespace ZoneOne.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GameRoomsController : ControllerBase
+public class GameRoomsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public GameRoomsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<GameRoomDto>>> GetRooms()
     {
-        var result = await _mediator.Send(new GetGameRoomsQuery());
+        var result = await mediator.Send(new GetGameRoomsQuery());
         return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<GameRoomDto>> GetRoom(Guid id)
     {
-        var result = await _mediator.Send(new GetGameRoomByIdQuery(id));
+        var result = await mediator.Send(new GetGameRoomByIdQuery(id));
         if (result == null) return NotFound();
         return Ok(result);
     }
@@ -34,7 +28,7 @@ public class GameRoomsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateGameRoomCommand command)
     {
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         return CreatedAtAction(nameof(GetRoom), new { id = result }, result);
     }
 
@@ -43,7 +37,7 @@ public class GameRoomsController : ControllerBase
     {
         if (id != command.Id) return BadRequest();
 
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         if (!result) return NotFound();
 
         return NoContent();
@@ -52,7 +46,7 @@ public class GameRoomsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var result = await _mediator.Send(new DeleteGameRoomCommand(id));
+        var result = await mediator.Send(new DeleteGameRoomCommand(id));
         if (!result) return NotFound();
 
         return NoContent();

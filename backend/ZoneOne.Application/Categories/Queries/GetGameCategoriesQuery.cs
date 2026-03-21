@@ -6,19 +6,13 @@ namespace ZoneOne.Application.Categories.Queries;
 
 public record GetGameCategoriesQuery : IRequest<IEnumerable<GameCategoryDto>>;
 
-public class GetGameCategoriesQueryHandler : IRequestHandler<GetGameCategoriesQuery, IEnumerable<GameCategoryDto>>
+public class GetGameCategoriesQueryHandler(IGamingDbContext context) : IRequestHandler<GetGameCategoriesQuery, IEnumerable<GameCategoryDto>>
 {
-    private readonly IGamingDbContext _context;
-
-    public GetGameCategoriesQueryHandler(IGamingDbContext context)
-    {
-        _context = context;
-    }
 
     public async Task<IEnumerable<GameCategoryDto>> Handle(GetGameCategoriesQuery request, CancellationToken cancellationToken)
     {
-        return await _context.GameCategories
-            .Select(c => new GameCategoryDto(c.Id, c.Name, c.Description, c.IconUrl, c.ThemeColor))
+        return await context.GameCategories
+            .Select(c => new GameCategoryDto(c.Id, c.Name, c.Description))
             .ToListAsync(cancellationToken);
     }
 }

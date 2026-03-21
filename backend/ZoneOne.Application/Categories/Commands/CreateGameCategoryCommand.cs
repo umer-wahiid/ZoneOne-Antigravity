@@ -6,31 +6,21 @@ namespace ZoneOne.Application.Categories.Commands;
 
 public record CreateGameCategoryCommand(
     string Name,
-    string Description,
-    string IconUrl,
-    string ThemeColor) : IRequest<Guid>;
+    string Description) : IRequest<Guid>;
 
-public class CreateGameCategoryCommandHandler : IRequestHandler<CreateGameCategoryCommand, Guid>
+public class CreateGameCategoryCommandHandler(IGamingDbContext context) : IRequestHandler<CreateGameCategoryCommand, Guid>
 {
-    private readonly IGamingDbContext _context;
-
-    public CreateGameCategoryCommandHandler(IGamingDbContext context)
-    {
-        _context = context;
-    }
 
     public async Task<Guid> Handle(CreateGameCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = new GameCategory
         {
             Name = request.Name,
-            Description = request.Description,
-            IconUrl = request.IconUrl,
-            ThemeColor = request.ThemeColor
+            Description = request.Description
         };
 
-        _context.GameCategories.Add(category);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.GameCategories.Add(category);
+        await context.SaveChangesAsync(cancellationToken);
 
         return category.Id;
     }
