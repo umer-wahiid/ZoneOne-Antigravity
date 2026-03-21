@@ -45,9 +45,9 @@ import { Observable } from 'rxjs';
 
       <p-table #dt [value]="(categories$ | async) || []" [tableStyle]="{ 'min-width': '50rem' }" responsiveLayout="scroll"
                [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25]"
-               [showGridlines]="false" [stripedRows]="true"
+               [showGridlines]="false"
                [globalFilterFields]="['name', 'description']"
-               styleClass="p-datatable-sm">
+               styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="caption">
             <div class="flex justify-content-end">
                 <p-iconField iconPosition="left">
@@ -58,7 +58,6 @@ import { Observable } from 'rxjs';
         </ng-template>
         <ng-template pTemplate="header">
           <tr>
-            <th>Icon</th>
             <th pSortableColumn="name">
               <div class="flex align-items-center gap-2">
                 Name <p-sortIcon field="name"></p-sortIcon>
@@ -71,25 +70,13 @@ import { Observable } from 'rxjs';
                 <p-columnFilter type="text" field="description" display="menu"></p-columnFilter>
               </div>
             </th>
-            <th>Theme Color</th>
             <th class="text-right">Actions</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-category>
           <tr>
-            <td>
-              <div class="icon-preview" [style.background-color]="category.themeColor + '33'">
-                <img [src]="category.iconUrl || '/assets/icons/default.svg'" alt="icon" onerror="this.src='/assets/icons/table-tennis.svg'">
-              </div>
-            </td>
             <td class="font-bold">{{ category.name }}</td>
             <td class="text-600 text-sm">{{ category.description }}</td>
-            <td>
-              <div class="color-indicator">
-                <span class="color-dot" [style.background-color]="category.themeColor"></span>
-                {{ category.themeColor }}
-              </div>
-            </td>
             <td class="text-right">
               <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="editCategory(category)" [style]="{'margin-right': '0.5rem'}"></p-button>
               <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteCategory(category)"></p-button>
@@ -125,21 +112,6 @@ import { Observable } from 'rxjs';
             </small>
           </div>
 
-          <div class="flex gap-4">
-            <div class="field flex-1">
-              <label for="themeColor" class="font-bold block mb-2 text-secondary">Theme Color</label>
-              <div class="flex align-items-center gap-3 bg-darker p-2 border-round border-1 border-300">
-                <p-colorPicker formControlName="themeColor"></p-colorPicker>
-                <span class="font-mono text-primary text-sm">{{ f['themeColor'].value }}</span>
-              </div>
-            </div>
-
-            <div class="field flex-1">
-              <label for="iconUrl" class="font-bold block mb-2 text-secondary">Icon URL (optional)</label>
-              <input pInputText id="iconUrl" formControlName="iconUrl" placeholder="/assets/icons/default.svg" class="w-full" />
-            </div>
-          </div>
-
           <div class="flex justify-content-end gap-2 mt-4">
             <p-button label="Cancel" icon="pi pi-times" (onClick)="displayDialog = false" 
                      styleClass="p-button-text p-button-secondary"></p-button>
@@ -155,33 +127,6 @@ import { Observable } from 'rxjs';
   styles: [`
     .list-container {
       animation: fadeIn 0.3s ease-out;
-    }
-
-    .icon-preview {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      img {
-        width: 24px;
-        height: 24px;
-      }
-    }
-
-    .color-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: monospace;
-      
-      .color-dot {
-        width: 16px;
-        height: 16px;
-        border-radius: 4px;
-      }
     }
 
     .text-right { text-align: right; }
@@ -223,9 +168,7 @@ export class GameCategoryListComponent implements OnInit {
 
   categoryForm = this.fb.group({
     name: ['', Validators.required],
-    description: ['', Validators.required],
-    themeColor: ['#055a87'],
-    iconUrl: ['/assets/icons/default.svg']
+    description: ['', Validators.required]
   });
 
   get f() { return this.categoryForm.controls; }
@@ -235,10 +178,7 @@ export class GameCategoryListComponent implements OnInit {
   showDialog() {
     this.isEditMode = false;
     this.selectedCategoryId = null;
-    this.categoryForm.reset({
-      themeColor: '#055a87',
-      iconUrl: '/assets/icons/default.svg'
-    });
+    this.categoryForm.reset();
     this.displayDialog = true;
   }
 
@@ -247,9 +187,7 @@ export class GameCategoryListComponent implements OnInit {
     this.selectedCategoryId = category.id;
     this.categoryForm.patchValue({
       name: category.name,
-      description: category.description,
-      themeColor: category.themeColor,
-      iconUrl: category.iconUrl
+      description: category.description
     });
     this.displayDialog = true;
   }

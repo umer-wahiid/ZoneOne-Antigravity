@@ -43,9 +43,9 @@ import { Observable } from 'rxjs';
 
       <p-table #dt [value]="(extras$ | async) || []" [tableStyle]="{ 'min-width': '50rem' }" responsiveLayout="scroll"
                [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25]"
-               [showGridlines]="false" [stripedRows]="true"
+               [showGridlines]="false"
                [globalFilterFields]="['name']"
-               styleClass="p-datatable-sm">
+               styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="caption">
             <div class="flex justify-content-end">
                 <p-iconField iconPosition="left">

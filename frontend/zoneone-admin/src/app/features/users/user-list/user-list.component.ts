@@ -43,9 +43,9 @@ import { UserService, UserDto } from '../../../core/services/user.service';
 
       <p-table #dt [value]="users()" [loading]="loading()" responsiveLayout="scroll"
                [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25]"
-               [showGridlines]="false" [stripedRows]="true"
+               [showGridlines]="false"
                [globalFilterFields]="['fullName', 'userName', 'role']"
-               styleClass="p-datatable-sm">
+               styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="caption">
             <div class="flex justify-content-end">
                 <p-iconField iconPosition="left">
