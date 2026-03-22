@@ -277,9 +277,6 @@ export interface ExtraCartItem {
       </ng-template>
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="id">
-            <div class="flex align-items-center gap-1">ID <p-sortIcon field="id"></p-sortIcon> <p-columnFilter type="text" field="id" display="menu"></p-columnFilter></div>
-          </th>
           <th pSortableColumn="customerName">
             <div class="flex align-items-center gap-1">Customer <p-sortIcon field="customerName"></p-sortIcon> <p-columnFilter type="text" field="customerName" display="menu"></p-columnFilter></div>
           </th>
@@ -302,22 +299,26 @@ export interface ExtraCartItem {
                 </p-columnFilter>
             </div>
           </th>
-          <th pSortableColumn="createdAt">
-            <div class="flex align-items-center gap-1">Date <p-sortIcon field="createdAt"></p-sortIcon> <p-columnFilter type="date" field="createdAt" display="menu"></p-columnFilter></div>
+          <th pSortableColumn="remainingAmount">
+            <div class="flex align-items-center gap-1">Remaining <p-sortIcon field="remainingAmount"></p-sortIcon> <p-columnFilter type="numeric" field="remainingAmount" display="menu"></p-columnFilter></div>
+          </th>
+          <th pSortableColumn="createdBy">
+            <div class="flex align-items-center gap-1">Created By <p-sortIcon field="createdBy"></p-sortIcon> <p-columnFilter type="text" field="createdBy" display="menu"></p-columnFilter></div>
           </th>
           <th class="w-8rem text-center">Actions</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-booking>
         <tr>
-          <td class="font-mono text-xs">{{ booking.id.substring(0, 8) }}...</td>
+
           <td class="font-bold">{{ booking.customerName }}</td>
           <td>{{ booking.customerPhone }}</td>
           <td class="font-bold" style="color: #055a87;">{{ booking.totalPayment | currency:'PKR ':'symbol':'1.0-0' }}</td>
           <td>
             <span [style.color]="booking.paymentStatus === 'Done' ? '#055a87' : '#ef4444'" class="font-bold">{{ booking.paymentStatus }}</span>
           </td>
-          <td>{{ booking.createdAt | date:'short' }}</td>
+          <td class="font-bold" style="color: #055a87;">{{ booking.remainingAmount > 0 ? (booking.remainingAmount | currency:'PKR ':'symbol':'1.0-0') : '' }}</td>
+          <td>{{ booking.createdBy }}</td>
           <td class="text-center p-0">
             <div class="flex justify-content-center gap-2">
               <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" size="small" (onClick)="editBooking(booking)" pTooltip="Edit Booking"></p-button>
@@ -821,7 +822,11 @@ export class DashboardComponent implements OnInit {
   openBookingsDialog() {
     this.sessionSvc.getBookings().subscribe({
       next: (data) => {
-        this.bookingsList.set(data);
+        const mappedData = data.map((d: any) => ({
+             ...d, 
+             remainingAmount: Math.max(0, d.totalPayment - d.paidAmount)
+        }));
+        this.bookingsList.set(mappedData);
         this.showBookingsDialog = true;
       },
       error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Failed to load bookings.' })

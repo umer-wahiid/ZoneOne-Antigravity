@@ -12,6 +12,9 @@ public record BookingMasterDto(
     decimal TotalPayment,
     decimal PaidAmount,
     DateTime CreatedAt,
+    DateTime? UpdatedAt,
+    string CreatedBy,
+    string UpdatedBy,
     List<BookingChildDto> Items,
     List<BookingExtraDto> Extras);
 
@@ -48,7 +51,7 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
                 .ThenInclude(c => c.GameCategory)
             .Include(b => b.BookingExtras)
                 .ThenInclude(e => e.Extra)
-            .OrderByDescending(b => b.CreatedAt)
+            .OrderByDescending(b => b.UpdatedAt ?? b.CreatedAt)
             .ToListAsync(cancellationToken);
 
         return bookings.Select(b => new BookingMasterDto(
@@ -59,6 +62,9 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
             b.TotalPayment,
             b.PaidAmount,
             b.CreatedAt,
+            b.UpdatedAt,
+            b.CreatedBy,
+            b.UpdatedBy,
             b.BookingChildren.Select(c => new BookingChildDto(
                 c.Id,
                 c.GameRoomId,

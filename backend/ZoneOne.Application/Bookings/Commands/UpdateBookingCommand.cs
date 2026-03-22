@@ -16,7 +16,7 @@ public record UpdateBookingCommand(
     List<BookingItemCommand> Items,
     List<BookingExtraCommand>? Extras = null) : IRequest<Result<bool>>;
 
-public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
+public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator mediator, ICurrentUserService currentUserService) 
     : IRequestHandler<UpdateBookingCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(UpdateBookingCommand request, CancellationToken cancellationToken)
@@ -32,10 +32,14 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
         if (bookingMaster == null)
             return Result<bool>.Failure("Booking not found");
 
+        var currentUser = currentUserService.UserName ?? "System";
+
         bookingMaster.CustomerName = request.CustomerName;
         bookingMaster.CustomerPhone = request.CustomerPhone;
         bookingMaster.PaymentStatus = string.IsNullOrWhiteSpace(request.PaymentStatus) ? "Pending" : request.PaymentStatus;
         bookingMaster.PaidAmount = request.PaidAmount;
+        bookingMaster.UpdatedBy = currentUser;
+        bookingMaster.UpdatedAt = DateTime.UtcNow;
 
         // Mark existing items as soft-deleted to keep history cleanly
         foreach (var child in bookingMaster.BookingChildren)

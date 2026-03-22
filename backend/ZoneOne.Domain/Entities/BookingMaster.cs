@@ -9,8 +9,10 @@ public class BookingMaster
     public decimal PaidAmount { get; set; }
     public string PaymentStatus { get; set; } = string.Empty;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
+    public string UpdatedBy { get; set; } = string.Empty;
     public bool IsDeleted { get; set; }
-
     public ICollection<BookingChild> BookingChildren { get; set; } = new List<BookingChild>();
     public ICollection<BookingExtra> BookingExtras { get; set; } = new List<BookingExtra>();
 }

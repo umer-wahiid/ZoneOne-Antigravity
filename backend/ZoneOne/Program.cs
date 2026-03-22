@@ -4,12 +4,16 @@ using Microsoft.IdentityModel.Tokens;
 using ZoneOne.Application;
 using ZoneOne.Infrastructure;
 using ZoneOne.Infrastructure.Persistence;
+using ZoneOne.Application.Common.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, ZoneOne.Services.CurrentUserService>();
 
 builder.Services.AddAuthentication(options =>
 {

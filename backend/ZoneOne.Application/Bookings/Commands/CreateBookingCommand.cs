@@ -26,7 +26,7 @@ public record CreateBookingCommand(
     List<BookingItemCommand> Items,
     List<BookingExtraCommand>? Extras = null) : IRequest<Result<Guid>>;
 
-public class CreateBookingCommandHandler(IGamingDbContext context, IMediator mediator) 
+public class CreateBookingCommandHandler(IGamingDbContext context, IMediator mediator, ICurrentUserService currentUserService) 
     : IRequestHandler<CreateBookingCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
@@ -34,13 +34,18 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
         if (request.Items == null || !request.Items.Any())
             return Result<Guid>.Failure("A booking must contain at least one item.");
 
+        var currentUser = currentUserService.UserName ?? "System";
+
         var bookingMaster = new BookingMaster
         {
             CustomerName = request.CustomerName,
             CustomerPhone = request.CustomerPhone,
             PaymentStatus = string.IsNullOrWhiteSpace(request.PaymentStatus) ? "Pending" : request.PaymentStatus,
             PaidAmount = request.PaidAmount,
-            TotalPayment = 0 // Calculated below
+            TotalPayment = 0, // Calculated below
+            CreatedBy = currentUser,
+            UpdatedBy = currentUser,
+            UpdatedAt = DateTime.UtcNow
         };
 
         decimal grandTotal = 0;
