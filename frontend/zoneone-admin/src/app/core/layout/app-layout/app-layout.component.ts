@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-layout',
@@ -56,7 +57,17 @@ import { AuthService } from '../../services/auth.service';
       </aside>
 
       <main class="main-content">
-        <router-outlet></router-outlet>
+        <div class="content-wrapper">
+          <router-outlet></router-outlet>
+        </div>
+        <footer class="footer">
+          <div class="footer-content">
+            <span class="copyright">&copy; {{ currentYear }} <span class="brand">ZoneOne</span>. All rights reserved.</span>
+            <div class="footer-meta">
+              <span>Managed by <span class="brand">Youros Technologies</span> v{{ version }}</span>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   `,
@@ -259,6 +270,40 @@ import { AuthService } from '../../services/auth.service';
       margin-left: 240px;
       width: calc(100% - 240px);
       transition: margin-left 0.25s ease, width 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      background-color: #f8fafc;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      padding-bottom: 2rem;
+    }
+
+    .footer {
+      background-color: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      padding: 1rem 1.5rem;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .brand {
+      color: #055a87;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .footer-meta {
+      opacity: 0.7;
+      font-size: 0.8rem;
     }
 
     .collapsed .main-content {
@@ -269,6 +314,8 @@ import { AuthService } from '../../services/auth.service';
 })
 export class AppLayoutComponent implements OnInit {
   collapsed = false;
+  currentYear = new Date().getFullYear();
+  version = environment.appVersion;
   private router = inject(Router);
   private authService = inject(AuthService);
 
