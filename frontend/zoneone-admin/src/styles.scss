@@ -72,20 +72,30 @@
 }
 
 /* Hard Overrides for PrimeNG Buttons to Brand Color */
-.p-button.p-p-button,
-.p-button.p-button-primary,
-.p-button.p-button-success,
-.p-button.p-button-info,
-.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text) {
+.p-button.p-button-primary:not(.p-button-text):not(.p-button-outlined),
+.p-button.p-button-success:not(.p-button-text):not(.p-button-outlined),
+.p-button.p-button-info:not(.p-button-text):not(.p-button-outlined),
+.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text):not(.p-button-outlined) {
   background: #055a87 !important;
   border-color: #055a87 !important;
   color: #ffffff !important;
 }
 
-.p-button.p-button-primary:hover,
-.p-button.p-button-success:hover,
-.p-button.p-button-info:hover,
-.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text):hover {
+/* Ensure text action buttons use theme color for icons */
+.p-button-text.p-button-info,
+.p-button-text.p-button-primary {
+  color: #055a87 !important;
+  
+  &:hover {
+    color: #044a6b !important;
+    background: rgba(5, 90, 135, 0.05) !important;
+  }
+}
+
+.p-button.p-button-primary:not(.p-button-text):not(.p-button-outlined):hover,
+.p-button.p-button-success:not(.p-button-text):not(.p-button-outlined):hover,
+.p-button.p-button-info:not(.p-button-text):not(.p-button-outlined):hover,
+.p-button:not(.p-button-secondary):not(.p-button-danger):not(.p-button-help):not(.p-button-warn):not(.p-button-text):not(.p-button-outlined):hover {
   background: #044a6b !important;
   border-color: #044a6b !important;
 }

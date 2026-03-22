@@ -87,10 +87,11 @@ export interface ExtraCartItem {
           <div class="grid">
             <div class="col-12 sm:col-4 md:col-3" *ngFor="let cat of categories()">
               <div 
-                class="surface-100 p-3 border-round shadow-1 cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-3 flex flex-column align-items-center justify-content-center text-center h-7rem border-2 border-transparent"
+                class="surface-100 p-3 border-round shadow-1 cursor-pointer transition-transform hover:-translate-y-1 hover:shadow-3 flex flex-column align-items-center justify-content-center text-center h-7rem border-2 border-transparent relative"
                 [class.border-primary]="selectedCategory()?.id === cat.id"
                 [style.background-color]="selectedCategory()?.id === cat.id ? 'rgba(5, 90, 135, 0.1)' : ''"
                 (click)="onCategorySelect(cat)">
+                <i class="pi pi-clock absolute top-0 right-0 m-2 text-500 hover:text-primary transition-colors cursor-pointer p-2 border-circle hover:surface-200" title="View Bookings" (click)="openCategoryBookings(cat, $event)"></i>
                 <i class="pi pi-tags text-2xl text-primary mb-2"></i>
                 <div class="font-bold">{{ cat.name }}</div>
               </div>
@@ -362,6 +363,45 @@ export interface ExtraCartItem {
     </p-table>
   </p-dialog>
 
+  <!-- Category Bookings Dialog -->
+  <p-dialog [header]="'Bookings: ' + (selectedCategoryForBookings()?.name || '')" [modal]="true" [(visible)]="showCategoryBookingsDialog" [style]="{ width: '70vw' }" [maximizable]="true" [dismissableMask]="true">
+    <p-table [value]="categoryBookingsList()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped" 
+             [paginator]="true" [rows]="10" [globalFilterFields]="['customerName', 'customerPhone', 'status']">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Room</th>
+          <th>Timing</th>
+          <th>Status</th>
+          <th>Payment</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cb>
+        <tr>
+          <td class="font-bold">{{ cb.customerName }}</td>
+          <td>{{ cb.customerPhone }}</td>
+          <td class="font-bold text-primary">{{ cb.gameRoomName }}</td>
+          <td class="text-sm">
+             <div>{{ cb.startTime | date:'shortTime' }} - {{ cb.endTime | date:'shortTime' }}</div>
+             <div class="text-500 text-xs">{{ cb.startTime | date:'mediumDate' }}</div>
+          </td>
+          <td>
+            <span class="font-bold" [style.color]="cb.status === 'Current' ? '#22c55e' : '#eab308'">{{ cb.status }}</span>
+          </td>
+          <td>
+            <span [style.color]="cb.paymentStatus === 'Done' ? '#055a87' : '#ef4444'" class="font-bold">{{ cb.paymentStatus }}</span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center text-500 p-4">No current or upcoming bookings for this game.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-dialog>
+
   <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
   `,
   styles: [`
@@ -391,9 +431,25 @@ export class DashboardComponent implements OnInit {
     // no-op: signal binding handles reactivity
   }
 
+  // Prevents UTC shift by formatting the exact local time selected
+  private toLocalISOString(date: Date): string {
+    const pad = (n: number) => (n < 10 ? '0' + n : n);
+    return date.getFullYear() + '-'
+      + pad(date.getMonth() + 1) + '-'
+      + pad(date.getDate()) + 'T'
+      + pad(date.getHours()) + ':'
+      + pad(date.getMinutes()) + ':'
+      + pad(date.getSeconds());
+  }
+
   // Bookings History
   showBookingsDialog = false;
   bookingsList = signal<any[]>([]);
+  
+  // Category Bookings
+  showCategoryBookingsDialog = false;
+  selectedCategoryForBookings = signal<GameCategory | null>(null);
+  categoryBookingsList = signal<any[]>([]);
 
   selectedCategory = signal<GameCategory | null>(null);
   selectedRoom = signal<GameRoom | null>(null);
@@ -539,8 +595,8 @@ export class DashboardComponent implements OnInit {
     const val = this.sessionForm.value;
     const payload = {
       gameRoomId: room.id,
-      startTime: (val.startTime as Date).toISOString(),
-      endTime: (val.endTime as Date).toISOString(),
+      startTime: this.toLocalISOString(val.startTime as Date),
+      endTime: this.toLocalISOString(val.endTime as Date),
       numberOfPersons: val.numberOfPersons
     };
 
@@ -603,8 +659,8 @@ export class DashboardComponent implements OnInit {
       items: this.cartItems().map(item => ({
         gameRoomId: item.room.id,
         gameCategoryId: item.category.id,
-        startTime: item.startTime.toISOString(),
-        endTime: item.endTime.toISOString(),
+        startTime: this.toLocalISOString(item.startTime),
+        endTime: this.toLocalISOString(item.endTime),
         numberOfPersons: item.numberOfPersons
       })),
       extras: this.cartExtras().map(ex => ({
@@ -634,6 +690,47 @@ export class DashboardComponent implements OnInit {
         }
       });
     }
+  }
+
+  openCategoryBookings(category: GameCategory, event: Event) {
+    event.stopPropagation();
+    this.selectedCategoryForBookings.set(category);
+    
+    this.sessionSvc.getBookings().subscribe({
+      next: (res) => {
+        const flattened: any[] = [];
+        const now = new Date();
+        
+        res.forEach((master: any) => {
+          (master.items || []).forEach((item: any) => {
+            if (item.gameCategoryId === category.id) {
+               const start = new Date(item.startTime);
+               const end = new Date(item.endTime);
+               
+               // Show only current and upcoming bookings based on endTime
+               if (end > now) {
+                 flattened.push({
+                   bookingId: master.id,
+                   customerName: master.customerName,
+                   customerPhone: master.customerPhone,
+                   paymentStatus: master.paymentStatus,
+                   gameRoomName: item.gameRoomName,
+                   startTime: start,
+                   endTime: end,
+                   status: start <= now && end >= now ? 'Current' : 'Upcoming'
+                 });
+               }
+            }
+          });
+        });
+        
+        flattened.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+        
+        this.categoryBookingsList.set(flattened);
+        this.showCategoryBookingsDialog = true;
+      },
+      error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Could not fetch bookings.' })
+    });
   }
 
   openBookingsDialog() {
