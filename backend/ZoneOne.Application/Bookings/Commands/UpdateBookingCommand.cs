@@ -62,6 +62,16 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
             if (room == null)
                 return Result<bool>.Failure($"Game room not found: {item.GameRoomId}");
 
+            // Ensure no overlapping bookings for the same room (ignoring the current booking's own prior slots)
+            bool isOverlapping = await context.BookingChildren
+                .AnyAsync(c => c.GameRoomId == item.GameRoomId
+                            && c.BookingMasterId != bookingMaster.Id
+                            && c.StartTime < item.EndTime
+                            && c.EndTime > item.StartTime, cancellationToken);
+                            
+            if (isOverlapping)
+                return Result<bool>.Failure($"Room {room.RoomNo} is already booked for the selected time slot.");
+
             // Calculate the exact session price using the existing Query pattern
             var amountQuery = new CalculateSessionAmountQuery(
                 item.GameRoomId, 

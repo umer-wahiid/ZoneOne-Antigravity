@@ -58,6 +58,15 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
             if (room == null)
                 return Result<Guid>.Failure($"Game room not found: {item.GameRoomId}");
 
+            // Ensure no overlapping bookings for the same room
+            bool isOverlapping = await context.BookingChildren
+                .AnyAsync(c => c.GameRoomId == item.GameRoomId
+                            && c.StartTime < item.EndTime
+                            && c.EndTime > item.StartTime, cancellationToken);
+                            
+            if (isOverlapping)
+                return Result<Guid>.Failure($"Room {room.RoomNo} is already booked for the selected time slot.");
+
             // Calculate the exact session price using the existing Query pattern
             var amountQuery = new CalculateSessionAmountQuery(
                 item.GameRoomId, 
