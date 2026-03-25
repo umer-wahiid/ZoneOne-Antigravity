@@ -14,6 +14,10 @@ export class SessionService {
         return this.http.post<{ amount: number }>(`${this.apiUrl}/calculate`, payload);
     }
 
+    checkOverlap(payload: { gameRoomId: string, startTime: string, endTime: string, excludeBookingMasterId?: string | null }): Observable<void> {
+        return this.http.post<void>(`${this.apiUrl}/check-overlap`, payload);
+    }
+
     checkoutBooking(payload: { customerName: string, customerPhone: string, paymentStatus: string, paidAmount: number, items: any[], extras?: any[] }): Observable<{ id: string }> {
         return this.http.post<{ id: string }>(`${this.apiUrl}/checkout`, payload);
     }

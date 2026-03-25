@@ -20,6 +20,16 @@ public class BookingsController(IMediator mediator) : ControllerBase
         return Ok(new { amount = result.Value });
     }
 
+    [HttpPost("check-overlap")]
+    public async Task<ActionResult> CheckOverlap([FromBody] CheckOverlapQuery query)
+    {
+        var result = await mediator.Send(query);
+        if (!result.IsSuccess)
+            return BadRequest(new { message = result.Error });
+
+        return Ok();
+    }
+
     [HttpPost("checkout")]
     public async Task<ActionResult<Guid>> Checkout([FromBody] CreateBookingCommand command)
     {

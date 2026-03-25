@@ -664,27 +664,59 @@ export class DashboardComponent implements OnInit {
     if (this.sessionForm.invalid || !room || !cat || price === null) return;
 
     const val = this.sessionForm.value;
-    const newItem: CartItem = {
-      id: this.editingCartItemId() ? this.editingCartItemId()! : Math.random().toString(36).substring(2, 9),
-      category: cat,
-      room: room,
-      startTime: val.startTime as Date,
-      endTime: val.endTime as Date,
-      numberOfPersons: val.numberOfPersons,
-      calculatedPrice: price
-    };
+    const startObj = new Date(val.startTime as Date);
+    const endObj = new Date(val.endTime as Date);
 
-    if (this.editingCartItemId()) {
-      this.cartItems.update(items => items.map(i => i.id === newItem.id ? newItem : i));
-      this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Slot updated in cart' });
-    } else {
-      this.cartItems.update(items => [...items, newItem]);
-      this.messageSvc.add({ severity: 'success', summary: 'Added', detail: 'Slot added to cart' });
+    // Front-line guard: Prevent adding duplicates of overlapping slots to the exact local cart
+    const localOverlap = this.cartItems().find(item => 
+       item.room.id === room.id && 
+       item.id !== this.editingCartItemId() && 
+       new Date(item.startTime) < endObj && 
+       new Date(item.endTime) > startObj
+    );
+
+    if (localOverlap) {
+       this.messageSvc.add({ severity: 'error', summary: 'Cart Conflict', detail: 'This room slot overlaps with an existing pending ticket in your cart.' });
+       return;
     }
 
-    this.showDialog = false;
-    this.selectedRoom.set(null);
-    this.editingCartItemId.set(null);
+    // Backend guard: Execute exact overlap protection API check
+    const payload = {
+      gameRoomId: room.id,
+      startTime: this.toLocalISOString(startObj),
+      endTime: this.toLocalISOString(endObj),
+      excludeBookingMasterId: this.editingBookingId()
+    };
+
+    this.sessionSvc.checkOverlap(payload).subscribe({
+      next: () => {
+        const newItem: CartItem = {
+          id: this.editingCartItemId() ? this.editingCartItemId()! : Math.random().toString(36).substring(2, 9),
+          category: cat,
+          room: room,
+          startTime: startObj,
+          endTime: endObj,
+          numberOfPersons: val.numberOfPersons,
+          calculatedPrice: price
+        };
+
+        if (this.editingCartItemId()) {
+          this.cartItems.update(items => items.map(i => i.id === newItem.id ? newItem : i));
+          this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Slot updated in cart' });
+        } else {
+          this.cartItems.update(items => [...items, newItem]);
+          this.messageSvc.add({ severity: 'success', summary: 'Added', detail: 'Slot added to cart' });
+        }
+
+        this.showDialog = false;
+        this.selectedRoom.set(null);
+        this.editingCartItemId.set(null);
+      },
+      error: (err) => {
+        const detail = err.error?.message || 'Room is already booked for the selected time slot.';
+        this.messageSvc.add({ severity: 'error', summary: 'Schedule Conflict', detail });
+      }
+    });
   }
 
   checkoutCart() {
