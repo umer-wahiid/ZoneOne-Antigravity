@@ -223,34 +223,36 @@ export interface ExtraCartItem {
 
   <!-- Session Dialog -->
   <p-dialog [header]="editingCartItemId() ? 'Update Selected Slot' : 'New Slot Booking'" [modal]="true" [(visible)]="showDialog" [style]="{ width: '450px' }" (onHide)="cancelSelection()" [dismissableMask]="true">
-    <div class="flex align-items-center gap-3 mb-4 surface-100 p-3 border-round">
+    <div class="flex align-items-center gap-3 mb-3 surface-100 p-2 border-round">
       <i class="pi pi-building text-2xl text-primary"></i>
       <div>
-        <div class="font-bold text-xl">{{ selectedRoom()?.roomNo }}</div>
-        <div class="text-500 text-sm">{{ selectedRoom()?.gameCategoryName }} • {{ selectedRoom()?.ratePerHour | currency:'PKR ' }}/hr</div>
+        <div class="font-bold text-lg">{{ selectedRoom()?.roomNo }}</div>
+        <div class="text-500 text-xs">{{ selectedRoom()?.gameCategoryName }} • {{ selectedRoom()?.ratePerHour | currency:'PKR ' }}/hr</div>
       </div>
     </div>
 
     <form [formGroup]="sessionForm" class="flex flex-column gap-3">
-      <div class="flex flex-column gap-2">
-        <label class="font-semibold">Number of Persons</label>
+      <div class="flex flex-column gap-1">
+        <label class="font-semibold text-sm">Number of Persons</label>
         <p-inputNumber formControlName="numberOfPersons" [min]="1" [showButtons]="true" styleClass="w-full"></p-inputNumber>
       </div>
 
-      <div class="flex flex-column gap-2">
-        <label class="font-semibold">Start Time</label>
-        <p-datepicker formControlName="startTime" [showTime]="true" hourFormat="12" styleClass="w-full" appendTo="body"></p-datepicker>
-      </div>
+      <div class="flex gap-3">
+        <div class="flex flex-column gap-1 flex-1">
+          <label class="font-semibold text-sm">Start Time</label>
+          <p-datepicker formControlName="startTime" [showTime]="true" hourFormat="12" styleClass="w-full" appendTo="body"></p-datepicker>
+        </div>
 
-      <div class="flex flex-column gap-2">
-        <label class="font-semibold">End Time</label>
-        <p-datepicker formControlName="endTime" [showTime]="true" hourFormat="12" styleClass="w-full" appendTo="body"></p-datepicker>
+        <div class="flex flex-column gap-1 flex-1">
+          <label class="font-semibold text-sm">End Time</label>
+          <p-datepicker formControlName="endTime" [showTime]="true" hourFormat="12" styleClass="w-full" appendTo="body"></p-datepicker>
+        </div>
       </div>
 
       <!-- Preview Price Box -->
-      <div *ngIf="calculatedPrice() !== null" class="mt-3 p-3 border-1 border-round text-center" style="background-color: rgba(5, 90, 135, 0.05); border-color: rgba(5, 90, 135, 0.2);">
-        <div class="font-medium mb-1" style="color: #055a87;">Estimated Total</div>
-        <div class="text-3xl font-bold" style="color: #055a87;">{{ calculatedPrice() | currency:'PKR ':'symbol':'1.0-0' }}</div>
+      <div *ngIf="calculatedPrice() !== null" class="mt-1 p-2 border-1 border-round text-center" style="background-color: rgba(5, 90, 135, 0.05); border-color: rgba(5, 90, 135, 0.2);">
+        <div class="font-medium text-sm" style="color: #055a87;">Estimated Total</div>
+        <div class="text-2xl font-bold" style="color: #055a87;">{{ calculatedPrice() | currency:'PKR ':'symbol':'1.0-0' }}</div>
       </div>
     </form>
 
