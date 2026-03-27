@@ -323,6 +323,7 @@ export interface ExtraCartItem {
           <td>{{ booking.createdBy }}</td>
           <td class="text-center p-0">
             <div class="flex justify-content-center gap-2">
+              <p-button icon="pi pi-print" [text]="true" [rounded]="true" severity="secondary" size="small" (onClick)="printBooking(booking)" pTooltip="Print Receipt"></p-button>
               <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" severity="info" size="small" (onClick)="editBooking(booking)" pTooltip="Edit Booking"></p-button>
               <p-button icon="pi pi-trash" [text]="true" [rounded]="true" severity="danger" size="small" (onClick)="deleteBooking(booking.id)" pTooltip="Delete Booking"></p-button>
             </div>
@@ -851,6 +852,120 @@ export class DashboardComponent implements OnInit {
       },
       error: () => this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Could not fetch bookings.' })
     });
+  }
+
+  printBooking(booking: any) {
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!printWindow) {
+      this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Popup blocked. Please allow popups to print receipts.' });
+      return;
+    }
+
+    const itemsHtml = (booking.items ?? []).map((item: any) => {
+      const p = item.totalAmount || 0;
+      return `
+        <div class="line-item">
+          <div>${item.gameRoomName} (${item.gameCategoryName}) <br/><small>${new Date(item.startTime).toLocaleTimeString()} - ${new Date(item.endTime).toLocaleTimeString()}</small></div>
+          <div class="price">${p.toFixed(2)}</div>
+        </div>
+      `;
+    }).join('');
+
+    const extrasHtml = (booking.extras ?? []).map((ex: any) => {
+      const p = ex.totalAmount || 0;
+      return `
+        <div class="line-item">
+          <div>${ex.extraName} (x${ex.quantity})</div>
+          <div class="price">${p.toFixed(2)}</div>
+        </div>
+      `;
+    }).join('');
+
+    const dateStr = new Date(booking.createdAt).toLocaleString();
+    const remaining = Math.max(0, booking.totalPayment - booking.paidAmount);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - ${booking.id}</title>
+        <style>
+          body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 10px;
+            width: 80mm; /* Standard POS printer size */
+            color: #000;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+          }
+          .header h2 { margin: 0 0 5px; font-size: 16px; }
+          .header p { margin: 2px 0; }
+          .section { margin-bottom: 10px; }
+          .section-title { font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 5px; padding-bottom: 2px; }
+          .line-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+          .price { text-align: right; }
+          .totals { border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px; }
+          .total-line { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 3px; }
+          .footer { text-align: center; margin-top: 15px; font-size: 10px; border-top: 1px dashed #000; padding-top: 10px; }
+          @media print {
+             @page { margin: 0; }
+             body { width: 100%; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>ZONE ONE</h2>
+          <p>Gaming Arena</p>
+          <p>Date: ${dateStr}</p>
+          <p>Ticket: ${booking.id.substring(0, 8).toUpperCase()}</p>
+        </div>
+        
+        <div class="section">
+          <div><strong>Customer:</strong> ${booking.customerName || 'Walk-in'}</div>
+          ${booking.customerPhone ? '<div><strong>Phone:</strong> ' + booking.customerPhone + '</div>' : ''}
+          <div><strong>Status:</strong> ${booking.paymentStatus}</div>
+        </div>
+
+        ${booking.items?.length ? 
+        '<div class="section"><div class="section-title">Rooms/Tables</div>' + itemsHtml + '</div>' : ''}
+
+        ${booking.extras?.length ? 
+        '<div class="section"><div class="section-title">Extras</div>' + extrasHtml + '</div>' : ''}
+
+        <div class="totals">
+          <div class="total-line">
+            <span>Subtotal:</span>
+            <span>${booking.totalPayment.toFixed(2)}</span>
+          </div>
+          <div class="total-line">
+            <span>Paid:</span>
+            <span>${booking.paidAmount.toFixed(2)}</span>
+          </div>
+          ${remaining > 0 ? 
+          '<div class="total-line" style="font-size: 14px; margin-top: 5px;"><span>Remaining:</span><span>' + remaining.toFixed(2) + '</span></div>' : ''}
+        </div>
+
+        <div class="footer">
+          <p>Thank you for visiting Zone One!</p>
+          <p>System by Youros Technologies</p>
+        </div>
+        <script>
+          window.onload = function() { window.print(); window.close(); }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
   }
 
   openBookingsDialog() {
