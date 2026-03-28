@@ -17,6 +17,7 @@ public class BookingChild
     public DateTime EndTime { get; set; }
     public int TotalPersons { get; set; }
     public decimal TableRate { get; set; }
+    public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
     public bool IsDeleted { get; set; }
 }

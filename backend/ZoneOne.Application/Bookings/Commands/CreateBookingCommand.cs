@@ -12,7 +12,8 @@ public record BookingItemCommand(
     Guid GameCategoryId,
     DateTime StartTime,
     DateTime EndTime,
-    int NumberOfPersons);
+    int NumberOfPersons,
+    decimal DiscountAmount = 0);
 
 public record BookingExtraCommand(
     Guid ExtraId,
@@ -79,7 +80,8 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
             if (!amountResult.IsSuccess)
                 return Result<Guid>.Failure(amountResult.Error ?? "Could not calculate amount.");
 
-            grandTotal += amountResult.Value;
+            var finalAmount = Math.Max(0, amountResult.Value - item.DiscountAmount);
+            grandTotal += finalAmount;
 
             bookingMaster.BookingChildren.Add(new BookingChild
             {
@@ -89,7 +91,8 @@ public class CreateBookingCommandHandler(IGamingDbContext context, IMediator med
                 EndTime = item.EndTime,
                 TotalPersons = item.NumberOfPersons,
                 TableRate = room.RatePerHour,
-                TotalAmount = amountResult.Value
+                DiscountAmount = item.DiscountAmount,
+                TotalAmount = finalAmount
             });
         }
 

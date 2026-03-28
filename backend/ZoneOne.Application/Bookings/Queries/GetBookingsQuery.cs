@@ -28,6 +28,7 @@ public record BookingChildDto(
     DateTime EndTime,
     int TotalPersons,
     decimal TableRate,
+    decimal DiscountAmount,
     decimal TotalAmount);
 
 public record BookingExtraDto(
@@ -75,6 +76,7 @@ public class GetBookingsQueryHandler(IGamingDbContext context) : IRequestHandler
                 c.EndTime,
                 c.TotalPersons,
                 c.TableRate,
+                c.DiscountAmount,
                 c.TotalAmount
             )).ToList(),
             b.BookingExtras.Select(e => new BookingExtraDto(

@@ -84,7 +84,8 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
             if (!amountResult.IsSuccess)
                 return Result<bool>.Failure(amountResult.Error ?? "Could not calculate amount.");
 
-            grandTotal += amountResult.Value;
+            var finalAmount = Math.Max(0, amountResult.Value - item.DiscountAmount);
+            grandTotal += finalAmount;
 
             context.BookingChildren.Add(new BookingChild
             {
@@ -94,7 +95,8 @@ public class UpdateBookingCommandHandler(IGamingDbContext context, IMediator med
                 EndTime = item.EndTime,
                 TotalPersons = item.NumberOfPersons,
                 TableRate = room.RatePerHour,
-                TotalAmount = amountResult.Value,
+                DiscountAmount = item.DiscountAmount,
+                TotalAmount = finalAmount,
                 BookingMasterId = bookingMaster.Id
             });
         }

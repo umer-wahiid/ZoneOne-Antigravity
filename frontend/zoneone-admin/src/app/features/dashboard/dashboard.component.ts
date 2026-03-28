@@ -35,6 +35,7 @@ export interface CartItem {
   endTime: Date;
   numberOfPersons: number;
   calculatedPrice: number;
+  discountAmount?: number;
 }
 
 export interface ExtraCartItem {
@@ -148,10 +149,15 @@ export interface ExtraCartItem {
                   <td>
                     <div class="font-bold text-900">{{ item.room.roomNo }}</div>
                     <div class="text-xs text-500">{{ item.category.name }} ({{ item.numberOfPersons }}p)</div>
+                    <div class="mt-2 flex align-items-center gap-2">
+                       <span class="text-xs text-500 font-semibold" pTooltip="Slot Discount">Disc:</span>
+                       <p-inputNumber [ngModel]="item.discountAmount || 0" (ngModelChange)="updateDiscount(item.id, $event)" [min]="0" [max]="item.calculatedPrice" styleClass="w-full max-w-5rem" inputStyleClass="w-full text-center text-sm p-1" mode="currency" currency="PKR" locale="en-PK"></p-inputNumber>
+                    </div>
                   </td>
                   <td>
-                    <div class="text-sm font-medium">{{ item.startTime | date:'shortTime' }} - {{ item.endTime | date:'shortTime' }}</div>
-                    <div class="text-sm font-bold" style="color: #055a87;">{{ item.calculatedPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                    <div class="text-sm font-medium mb-1">{{ item.startTime | date:'shortTime' }} - {{ item.endTime | date:'shortTime' }}</div>
+                    <div class="text-xs font-semibold text-500 line-through" *ngIf="item.discountAmount">{{ item.calculatedPrice | currency:'PKR ':'symbol':'1.0-0' }}</div>
+                    <div class="text-sm font-bold" style="color: #055a87;">{{ (item.calculatedPrice - (item.discountAmount || 0)) | currency:'PKR ':'symbol':'1.0-0' }}</div>
                   </td>
                   <td class="text-center p-0">
                     <div class="flex flex-column gap-1">
@@ -516,7 +522,7 @@ export class DashboardComponent implements OnInit {
   });
 
   grandTotal = computed(() => {
-    const itemsTotal = this.cartItems().reduce((acc, item) => acc + item.calculatedPrice, 0);
+    const itemsTotal = this.cartItems().reduce((acc, item) => acc + Math.max(0, item.calculatedPrice - (item.discountAmount || 0)), 0);
     const extrasTotal = this.cartExtras().reduce((acc, item) => acc + item.totalPrice, 0);
     return itemsTotal + extrasTotal;
   });
@@ -610,6 +616,12 @@ export class DashboardComponent implements OnInit {
     });
 
     this.showDialog = true;
+  }
+
+  updateDiscount(id: string, discount: number | null) {
+    this.cartItems.update(items =>
+      items.map(i => i.id === id ? { ...i, discountAmount: discount || 0 } : i)
+    );
   }
 
   removeCartItem(id: string) {
@@ -742,7 +754,8 @@ export class DashboardComponent implements OnInit {
         gameCategoryId: item.category.id,
         startTime: this.toLocalISOString(item.startTime),
         endTime: this.toLocalISOString(item.endTime),
-        numberOfPersons: item.numberOfPersons
+        numberOfPersons: item.numberOfPersons,
+        discountAmount: item.discountAmount || 0
       })),
       extras: this.cartExtras().map(ex => ({
         extraId: ex.extra.id,
@@ -861,103 +874,168 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const itemsHtml = (booking.items ?? []).map((item: any) => {
-      const p = item.totalAmount || 0;
-      return `
-        <div class="line-item">
-          <div>${item.gameRoomName} (${item.gameCategoryName}) <br/><small>${new Date(item.startTime).toLocaleTimeString()} - ${new Date(item.endTime).toLocaleTimeString()}</small></div>
-          <div class="price">${p.toFixed(2)}</div>
-        </div>
-      `;
-    }).join('');
+    let itemsHtml = '';
+    let totalQty = 0;
+    let totalItems = 0;
+    
+    // Process Rooms
+    (booking.items ?? []).forEach((item: any) => {
+      const netAmount = item.totalAmount || 0;
+      const discount = item.discountAmount || 0;
+      const originalPrice = netAmount + discount;
+      const persons = item.totalPersons || 1;
 
-    const extrasHtml = (booking.extras ?? []).map((ex: any) => {
-      const p = ex.totalAmount || 0;
-      return `
-        <div class="line-item">
-          <div>${ex.extraName} (x${ex.quantity})</div>
-          <div class="price">${p.toFixed(2)}</div>
-        </div>
-      `;
-    }).join('');
+      const sDate = new Date(item.startTime);
+      const eDate = new Date(item.endTime);
+      const sTime = sDate.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+      const eTime = eDate.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-    const dateStr = new Date(booking.createdAt).toLocaleString();
-    const remaining = Math.max(0, booking.totalPayment - booking.paidAmount);
+      totalQty += persons;
+      totalItems += 1;
+      itemsHtml += '<tr><td colspan="5" class="product-name">' + item.gameRoomName + ' (' + item.gameCategoryName + ') ' + sTime + '-' + eTime + '</td></tr>';
+      itemsHtml += '<tr class="product-data">';
+      itemsHtml += '<td></td><td class="text-center">' + persons + '</td><td class="text-right">' + (originalPrice).toLocaleString('en-US') + '</td><td class="text-center">' + discount.toLocaleString('en-US') + '</td><td class="text-right">' + (netAmount).toLocaleString('en-US') + '</td>';
+      itemsHtml += '</tr>';
+    });
+
+    // Process Extras
+    (booking.extras ?? []).forEach((ex: any) => {
+      const qty = ex.quantity || 1;
+      const amount = ex.totalAmount || 0;
+      const price = amount / qty;
+      totalQty += qty;
+      totalItems += 1;
+      itemsHtml += '<tr><td colspan="5" class="product-name">' + ex.extraName + '</td></tr>';
+      itemsHtml += '<tr class="product-data">';
+      itemsHtml += '<td></td><td class="text-center">' + qty + '</td><td class="text-right">' + price.toLocaleString('en-US') + '</td><td class="text-center">0</td><td class="text-right">' + amount.toLocaleString('en-US') + '</td>';
+      itemsHtml += '</tr>';
+    });
+
+    const totalAmountStr = (booking.totalPayment || 0).toLocaleString('en-US');
+    const totalPaidStr = (booking.paidAmount || 0).toLocaleString('en-US');
+
+    let orderNum = "VCH/" + booking.id.toString().substring(0, 6).toUpperCase();
+
+    const dateObj = new Date(booking.createdAt || new Date());
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateObj.getFullYear();
+    let hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const timeStr = hours.toString().padStart(2, '0') + ':' + minutes + ' ' + ampm;
+    const formattedDate = day + '/' + month + '/' + year + ' ' + timeStr;
+
+    const statusText = booking.paymentStatus === "Done" ? "Paid" : "Pending";
 
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - ${booking.id}</title>
+        <title>Receipt - ${orderNum}</title>
         <style>
+          @page { margin: 0; }
           body {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
             margin: 0;
             padding: 10px;
-            width: 80mm; /* Standard POS printer size */
+            width: 80mm;
             color: #000;
           }
-          .header {
-            text-align: center;
-            margin-bottom: 10px;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
-          }
-          .header h2 { margin: 0 0 5px; font-size: 16px; }
-          .header p { margin: 2px 0; }
-          .section { margin-bottom: 10px; }
-          .section-title { font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 5px; padding-bottom: 2px; }
-          .line-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-          .price { text-align: right; }
-          .totals { border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px; }
-          .total-line { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 3px; }
-          .footer { text-align: center; margin-top: 15px; font-size: 10px; border-top: 1px dashed #000; padding-top: 10px; }
-          @media print {
-             @page { margin: 0; }
-             body { width: 100%; padding: 0; }
-          }
+          * { box-sizing: border-box; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .text-left { text-align: left; }
+          .font-bold { font-weight: bold; }
+          .logo { text-align: center; margin-bottom: 5px; }
+          .logo h1 { margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -1px; }
+          .logo h1 span.yr { font-size: 30px; letter-spacing: -3px; }
+          .logo h1 span.tech { font-size: 14px; display: block; letter-spacing: 1px; color: #04506c; margin-top: -5px;}
+          .store-info { text-align: center; margin-bottom: 15px; font-weight: bold; font-size: 12px; }
+          .store-info p { margin: 2px 0; }
+          
+          .qr-box { text-align: center; margin-bottom: 10px; }
+          .qr-box img { width: 80px; height: 80px; }
+          
+          .invoice-info { margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
+          .invoice-info div { margin-bottom: 2px; }
+          
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+          th, td { padding: 4px; font-size: 13px; }
+          th { border: 1.5px solid #000; font-weight: bold; }
+          
+          .product-name { padding-top: 8px; font-weight: 500;}
+          .product-data { border-bottom: 1px solid #ddd; }
+          .product-data td { padding-top: 2px; padding-bottom: 8px; }
+          
+          .totals-row td { border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; padding: 6px 4px; }
+          
+          .amount-summary { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; border: 1.5px solid #000; padding: 4px; margin-bottom: 10px; }
+          .cash-received { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; padding: 4px; margin-bottom: 15px; text-transform: uppercase; }
+
+          .footer { text-align: center; font-size: 12px; margin-top: 20px;}
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2>ZONE ONE</h2>
-          <p>Gaming Arena</p>
-          <p>Date: ${dateStr}</p>
-          <p>Ticket: ${booking.id.substring(0, 8).toUpperCase()}</p>
+        <div class="logo">
+          <h1><span class="yr">YR</span> YOUROS <span class="tech">TECHNOLOGIES</span></h1>
+        </div>
+        <div class="store-info">
+          <p>Youros Technologies</p>
+          <p>Rufi Heaven Appartment Gulshan-e-iqbaal Block</p>
+          <p>13D</p>
+          <p>0300-9270194, 0325-1113099</p>
         </div>
         
-        <div class="section">
-          <div><strong>Customer:</strong> ${booking.customerName || 'Walk-in'}</div>
-          ${booking.customerPhone ? '<div><strong>Phone:</strong> ' + booking.customerPhone + '</div>' : ''}
-          <div><strong>Status:</strong> ${booking.paymentStatus}</div>
+        <div class="qr-box">
+           <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/923009270194" alt="QR" />
         </div>
 
-        ${booking.items?.length ? 
-        '<div class="section"><div class="section-title">Rooms/Tables</div>' + itemsHtml + '</div>' : ''}
+        <div class="invoice-info text-left">
+          <div class="font-bold font-lg" style="font-size:16px;">ORDER #: ${orderNum}</div>
+          <div><span class="font-bold">DATE &amp; TIME :</span>${formattedDate}</div>
+          <div><span class="font-bold">BILL STATUS:</span>${statusText}</div>
+        </div>
 
-        ${booking.extras?.length ? 
-        '<div class="section"><div class="section-title">Extras</div>' + extrasHtml + '</div>' : ''}
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: left;">Products</th>
+              <th width="15%" class="text-center">Qty</th>
+              <th width="20%" class="text-center">Price</th>
+              <th width="15%" class="text-center">Disc</th>
+              <th width="20%" class="text-center">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+            <tr class="totals-row">
+              <td class="text-center">${totalItems}</td>
+              <td class="text-center">${totalQty}</td>
+              <td class="text-right">${totalAmountStr}</td>
+              <td class="text-center">0</td>
+              <td class="text-right">${totalAmountStr}</td>
+            </tr>
+          </tbody>
+        </table>
 
-        <div class="totals">
-          <div class="total-line">
-            <span>Subtotal:</span>
-            <span>${booking.totalPayment.toFixed(2)}</span>
-          </div>
-          <div class="total-line">
-            <span>Paid:</span>
-            <span>${booking.paidAmount.toFixed(2)}</span>
-          </div>
-          ${remaining > 0 ? 
-          '<div class="total-line" style="font-size: 14px; margin-top: 5px;"><span>Remaining:</span><span>' + remaining.toFixed(2) + '</span></div>' : ''}
+        <div class="amount-summary">
+          <span>Amount:</span>
+          <span>${totalAmountStr}</span>
         </div>
 
         <div class="footer">
-          <p>Thank you for visiting Zone One!</p>
-          <p>System by Youros Technologies</p>
+          Powered By : Youros Technologies
         </div>
+
         <script>
-          window.onload = function() { window.print(); window.close(); }
+          /* Delay slightly to ensure QR code image is loaded before printing */
+          window.onload = function() { 
+              setTimeout(function() { window.print(); window.close(); }, 500); 
+          }
         </script>
       </body>
       </html>
