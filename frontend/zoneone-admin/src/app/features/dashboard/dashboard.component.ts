@@ -219,7 +219,11 @@ export interface ExtraCartItem {
               </div>
             </div>
 
-            <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="(cartItems().length === 0 && cartExtras().length === 0) || !customerName.trim()"></p-button>
+            <div class="flex flex-column gap-2">
+              <p-button [label]="editingBookingId() ? 'Update Ticket' : 'Checkout Booking'" [icon]="editingBookingId() ? 'pi pi-save' : 'pi pi-check'" severity="success" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart()" [disabled]="(cartItems().length === 0 && cartExtras().length === 0) || !customerName.trim()"></p-button>
+              
+              <p-button *ngIf="cashReceived() === grandTotal()" label="Print & Checkout" icon="pi pi-print" severity="info" styleClass="w-full p-3 font-bold text-lg" (onClick)="checkoutCart(true)" [disabled]="(cartItems().length === 0 && cartExtras().length === 0) || !customerName.trim()"></p-button>
+            </div>
           </div>
 
         </div>
@@ -734,7 +738,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  checkoutCart() {
+  checkoutCart(printAfter: boolean = false) {
     if (this.cartItems().length === 0 || !this.customerName.trim()) {
       this.messageSvc.add({ severity: 'warn', summary: 'Missing Info', detail: 'Please provide Customer Name and add slots to cart.' });
       return;
@@ -763,10 +767,33 @@ export class DashboardComponent implements OnInit {
       }))
     };
 
+    const pseudoBooking = {
+      id: bookingId || 'PENDING',
+      createdAt: new Date(),
+      paymentStatus,
+      paidAmount: this.cashReceived(),
+      totalPayment: this.grandTotal(),
+      items: this.cartItems().map(ci => ({
+         gameRoomName: ci.room.roomNo,
+         gameCategoryName: ci.category.name,
+         startTime: ci.startTime,
+         endTime: ci.endTime,
+         totalPersons: ci.numberOfPersons,
+         discountAmount: ci.discountAmount || 0,
+         totalAmount: Math.max(0, ci.calculatedPrice - (ci.discountAmount || 0))
+      })),
+      extras: this.cartExtras().map(ex => ({
+         extraName: ex.extra.name,
+         quantity: ex.quantity,
+         totalAmount: ex.totalPrice
+      }))
+    };
+
     if (bookingId) {
       this.sessionSvc.updateBooking(bookingId, payload).subscribe({
         next: () => {
           this.messageSvc.add({ severity: 'success', summary: 'Updated', detail: 'Ticket completely updated!' });
+          if (printAfter) this.printBooking(pseudoBooking);
           this.clearCart();
         },
         error: (err) => {
@@ -775,8 +802,12 @@ export class DashboardComponent implements OnInit {
       });
     } else {
       this.sessionSvc.checkoutBooking(payload).subscribe({
-        next: () => {
+        next: (res: any) => {
           this.messageSvc.add({ severity: 'success', summary: 'Booking Finalized', detail: 'Ticket completely saved!' });
+          if (printAfter) {
+            pseudoBooking.id = res?.value || res?.id || 'VCH/GUEST'; // Backend wraps primitive Guid inside mapped `Value` via Result<>
+            this.printBooking(pseudoBooking);
+          }
           this.clearCart();
         },
         error: (err) => {
