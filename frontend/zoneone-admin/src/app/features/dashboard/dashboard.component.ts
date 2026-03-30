@@ -136,7 +136,7 @@ export interface ExtraCartItem {
           </div>
           
           <div class="flex-1 overflow-auto">
-            <p-table [value]="cartItems()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+            <p-table [value]="cartItems()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
               <ng-template pTemplate="header">
                 <tr>
                   <th>Room</th>
@@ -171,7 +171,7 @@ export interface ExtraCartItem {
 
             <div class="mt-3" *ngIf="cartExtras().length > 0">
               <div class="text-sm font-semibold text-500 mb-2 uppercase tracking-wider">Extras</div>
-              <p-table [value]="cartExtras()" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+              <p-table [value]="cartExtras()" dataKey="id" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
                 <ng-template pTemplate="header">
                   <tr *ngIf="cartExtras().length > 0">
                     <th>Item</th>
