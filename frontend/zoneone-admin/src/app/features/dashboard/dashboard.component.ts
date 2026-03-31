@@ -151,7 +151,7 @@ export interface ExtraCartItem {
                     <div class="text-xs text-500">{{ item.category.name }} ({{ item.numberOfPersons }}p)</div>
                     <div class="mt-2 flex align-items-center gap-2">
                        <span class="text-xs text-500 font-semibold" pTooltip="Slot Discount">Disc:</span>
-                       <p-inputNumber [ngModel]="item.discountAmount || 0" (ngModelChange)="updateDiscount(item.id, $event)" [min]="0" [max]="item.calculatedPrice" styleClass="w-full max-w-5rem" inputStyleClass="w-full text-center text-sm p-1" mode="currency" currency="PKR" locale="en-PK"></p-inputNumber>
+                       <p-inputNumber [(ngModel)]="item.discountAmount" (ngModelChange)="updateDiscount()" [min]="0" [max]="item.calculatedPrice" styleClass="w-full max-w-5rem" inputStyleClass="w-full text-center text-sm p-1" mode="currency" currency="PKR" locale="en-PK"></p-inputNumber>
                     </div>
                   </td>
                   <td>
@@ -622,10 +622,10 @@ export class DashboardComponent implements OnInit {
     this.showDialog = true;
   }
 
-  updateDiscount(id: string, discount: number | null) {
-    this.cartItems.update(items =>
-      items.map(i => i.id === id ? { ...i, discountAmount: discount || 0 } : i)
-    );
+  updateDiscount() {
+    // We simply push the exact identical array reference forward, preserving physical object mappings so the DOM does not rebuild nor shift cursors.
+    // Since ngModel already mutated the property inline inside the HTML, this just triggers the computed() layout reflow.
+    this.cartItems.set([...this.cartItems()]);
   }
 
   removeCartItem(id: string) {
